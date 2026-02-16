@@ -21,6 +21,7 @@
             --dark: #0f172a;
             --light: #f8fafc;
             --gray: #64748b;
+            --youtube: #ff0000;
         }
 
         body {
@@ -135,6 +136,11 @@
 
         .btn-danger {
             background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: white;
+        }
+
+        .btn-youtube {
+            background: linear-gradient(135deg, var(--youtube), #cc0000);
             color: white;
         }
 
@@ -320,6 +326,11 @@
             animation: pulse 1.5s infinite;
         }
 
+        .status-dot.youtube {
+            background: var(--youtube);
+            animation: pulse 1.5s infinite;
+        }
+
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
@@ -463,6 +474,16 @@
             color: var(--primary);
         }
 
+        .tool-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .tool-btn.active i {
+            color: white;
+        }
+
         /* Color Picker */
         .color-picker-group {
             display: flex;
@@ -593,6 +614,26 @@
             color: var(--gray);
         }
 
+        /* YouTube Connection Status */
+        .youtube-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .youtube-connected {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .youtube-disconnected {
+            color: var(--gray);
+        }
+
         /* Responsive */
         @media (max-width: 1200px) {
             .studio-layout {
@@ -653,19 +694,19 @@
                     </div>
 
                     <div class="tools-grid">
-                        <button class="tool-btn" onclick="startCamera()">
+                        <button class="tool-btn" onclick="startCamera()" id="cameraBtn">
                             <i class="fas fa-camera"></i>
                             <span>Camera</span>
                         </button>
-                        <button class="tool-btn" onclick="startScreenShare()">
+                        <button class="tool-btn" onclick="startScreenShare()" id="screenBtn">
                             <i class="fas fa-desktop"></i>
                             <span>Screen</span>
                         </button>
-                        <button class="tool-btn" onclick="toggleMicrophone()">
+                        <button class="tool-btn" onclick="toggleMicrophone()" id="micBtn">
                             <i class="fas fa-microphone"></i>
                             <span>Mic</span>
                         </button>
-                        <button class="tool-btn" onclick="stopCamera()">
+                        <button class="tool-btn" onclick="stopCamera()" id="stopBtn">
                             <i class="fas fa-stop"></i>
                             <span>Stop</span>
                         </button>
@@ -729,6 +770,29 @@
                         <span>YouTube Live</span>
                     </div>
                     
+                    <!-- YouTube Connection Status -->
+                    <div class="youtube-status" id="youtubeStatus">
+                        <i class="fab fa-youtube" style="color: #ff0000;"></i>
+                        <span class="youtube-disconnected" id="youtubeStatusText">Not connected to YouTube</span>
+                    </div>
+                    
+                    <!-- YouTube Sign In Button -->
+                    <button class="btn btn-youtube" onclick="signInToYouTube()" id="youtubeSignInBtn">
+                        <i class="fab fa-youtube"></i> Sign in with YouTube
+                    </button>
+                    
+                    <!-- YouTube User Info (hidden by default) -->
+                    <div id="youtubeUserInfo" style="display: none; margin-bottom: 15px;">
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #f8fafc; border-radius: 10px;">
+                            <img id="youtubeAvatar" src="" style="width: 40px; height: 40px; border-radius: 50%;">
+                            <div>
+                                <div id="youtubeName" style="font-weight: 600;"></div>
+                                <div id="youtubeChannel" style="font-size: 12px; color: var(--gray);"></div>
+                            </div>
+                            <button onclick="signOutYouTube()" style="margin-left: auto; padding: 5px 10px; background: none; border: 1px solid var(--danger); border-radius: 5px; color: var(--danger); cursor: pointer;">Sign Out</button>
+                        </div>
+                    </div>
+                    
                     <div class="youtube-card">
                         <i class="fab fa-youtube" style="font-size: 24px;"></i>
                         <h3>Go Live to YouTube</h3>
@@ -742,6 +806,9 @@
                         <div class="input-group">
                             <label>Stream Key</label>
                             <input type="password" id="streamKey" class="stream-key-input" placeholder="xxxx-xxxx-xxxx-xxxx">
+                            <button onclick="toggleStreamKeyVisibility()" style="position: absolute; right: 30px; margin-top: -38px; background: none; border: none; color: white; cursor: pointer;">
+                                <i class="fas fa-eye" id="streamKeyToggle"></i>
+                            </button>
                         </div>
                         
                         <small>Find your stream key in YouTube Studio → Create → Go Live</small>
@@ -773,29 +840,35 @@
     </div>
 
     <!-- YouTube Auth Modal -->
-    <div class="modal" id="youtubeModal">
+    <div class="modal" id="youtubeAuthModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2><i class="fab fa-youtube" style="color: #ff0000;"></i> Connect YouTube</h2>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
+                <button class="close-btn" onclick="closeYouTubeModal()">&times;</button>
             </div>
             <p>To stream to YouTube, you need to:</p>
             <ol style="margin: 20px 0; padding-left: 20px;">
                 <li>Have a YouTube channel</li>
                 <li>Enable live streaming (may take 24 hours for new channels)</li>
-                <li>Get your stream key from YouTube Studio</li>
+                <li>Sign in with your Google account that has a YouTube channel</li>
             </ol>
-            <div class="input-group">
-                <label>Stream Key Instructions:</label>
-                <p style="background: #f1f5f9; padding: 15px; border-radius: 10px; font-size: 14px;">
-                    1. Go to <a href="https://studio.youtube.com" target="_blank">YouTube Studio</a><br>
-                    2. Click "Create" → "Go Live"<br>
-                    3. Select "Stream" tab<br>
-                    4. Copy your stream key<br>
-                    5. Use RTMP URL: rtmp://a.rtmp.youtube.com/live2
-                </p>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <button class="btn btn-youtube" onclick="authenticateYouTube()" style="width: auto; padding: 15px 30px;">
+                    <i class="fab fa-google"></i> Sign in with Google
+                </button>
             </div>
-            <button class="btn btn-danger" onclick="closeModal()">Got it</button>
+            
+            <hr style="margin: 20px 0;">
+            
+            <h3>How to get your Stream Key:</h3>
+            <div style="background: #f1f5f9; padding: 15px; border-radius: 10px; font-size: 14px; margin-top: 10px;">
+                <p>1. Go to <a href="https://studio.youtube.com" target="_blank">YouTube Studio</a><br>
+                2. Click "Create" → "Go Live"<br>
+                3. Select "Stream" tab<br>
+                4. Copy your stream key<br>
+                5. Use RTMP URL: rtmp://a.rtmp.youtube.com/live2</p>
+            </div>
         </div>
     </div>
 
@@ -829,11 +902,13 @@
         let isDragging = false;
         let dragOffsetX, dragOffsetY;
         let currentUser = null;
+        let youtubeUser = null; // Separate for YouTube
         let youtubeStreamActive = false;
         let animationFrame = null;
         let streamBitrate = 0;
         let lastBytesSent = 0;
         let lastTime = Date.now();
+        let micEnabled = true;
 
         // DOM Elements
         const videoPreview = document.getElementById('videoPreview');
@@ -846,6 +921,10 @@
         const streamHealth = document.getElementById('streamHealth');
         const bitrateEl = document.getElementById('bitrate');
         const authSection = document.getElementById('authSection');
+        const cameraBtn = document.getElementById('cameraBtn');
+        const screenBtn = document.getElementById('screenBtn');
+        const micBtn = document.getElementById('micBtn');
+        const stopBtn = document.getElementById('stopBtn');
 
         // ==================== FIREBASE AUTH ====================
         auth.onAuthStateChanged((user) => {
@@ -901,9 +980,72 @@
                 });
         }
 
+        // ==================== YOUTUBE AUTH ====================
+        function signInToYouTube() {
+            document.getElementById('youtubeAuthModal').classList.add('active');
+        }
+
+        function closeYouTubeModal() {
+            document.getElementById('youtubeAuthModal').classList.remove('active');
+        }
+
+        function authenticateYouTube() {
+            // Simulate YouTube sign-in
+            // In production, this would use Google Identity Services for YouTube
+            
+            // For demo purposes, we'll simulate a successful sign-in
+            setTimeout(() => {
+                youtubeUser = {
+                    name: currentUser?.displayName || "YouTube Creator",
+                    email: currentUser?.email || "creator@gmail.com",
+                    channelName: "My Live Channel",
+                    avatar: currentUser?.photoURL || "https://via.placeholder.com/40"
+                };
+                
+                // Update UI
+                document.getElementById('youtubeSignInBtn').style.display = 'none';
+                document.getElementById('youtubeUserInfo').style.display = 'block';
+                document.getElementById('youtubeAvatar').src = youtubeUser.avatar;
+                document.getElementById('youtubeName').textContent = youtubeUser.name;
+                document.getElementById('youtubeChannel').textContent = youtubeUser.channelName;
+                
+                document.getElementById('youtubeStatusText').textContent = `Connected as ${youtubeUser.channelName}`;
+                document.getElementById('youtubeStatusText').className = 'youtube-connected';
+                
+                closeYouTubeModal();
+                alert('Successfully connected to YouTube!');
+            }, 1000);
+        }
+
+        function signOutYouTube() {
+            youtubeUser = null;
+            document.getElementById('youtubeSignInBtn').style.display = 'block';
+            document.getElementById('youtubeUserInfo').style.display = 'none';
+            document.getElementById('youtubeStatusText').textContent = 'Not connected to YouTube';
+            document.getElementById('youtubeStatusText').className = 'youtube-disconnected';
+        }
+
+        function toggleStreamKeyVisibility() {
+            const streamKeyInput = document.getElementById('streamKey');
+            const toggleIcon = document.getElementById('streamKeyToggle');
+            
+            if (streamKeyInput.type === 'password') {
+                streamKeyInput.type = 'text';
+                toggleIcon.className = 'fas fa-eye-slash';
+            } else {
+                streamKeyInput.type = 'password';
+                toggleIcon.className = 'fas fa-eye';
+            }
+        }
+
         // ==================== CAMERA FUNCTIONS ====================
         async function startCamera() {
             try {
+                if (mediaStream) {
+                    // Stop existing tracks
+                    mediaStream.getTracks().forEach(track => track.stop());
+                }
+                
                 mediaStream = await navigator.mediaDevices.getUserMedia({
                     video: {
                         width: { ideal: 1920 },
@@ -919,6 +1061,10 @@
                 
                 // Start canvas rendering
                 renderOverlaysToCanvas();
+                
+                // Update UI
+                cameraBtn.classList.add('active');
+                screenBtn.classList.remove('active');
                 
             } catch (error) {
                 console.error('Camera error:', error);
@@ -938,9 +1084,16 @@
                 });
                 
                 if (mediaStream) {
-                    // Combine with existing camera
-                    const tracks = [...mediaStream.getTracks(), ...screenStream.getTracks()];
-                    mediaStream = new MediaStream(tracks);
+                    // Stop video tracks but keep audio
+                    const audioTracks = mediaStream.getAudioTracks();
+                    mediaStream.getVideoTracks().forEach(track => track.stop());
+                    
+                    // Create new stream with screen and existing audio
+                    mediaStream = new MediaStream([
+                        ...screenStream.getVideoTracks(),
+                        ...audioTracks,
+                        ...screenStream.getAudioTracks()
+                    ]);
                 } else {
                     mediaStream = screenStream;
                 }
@@ -948,6 +1101,10 @@
                 videoPreview.srcObject = mediaStream;
                 updateStreamStatus(true);
                 startBitrateMonitoring();
+                
+                // Update UI
+                screenBtn.classList.add('active');
+                cameraBtn.classList.remove('active');
                 
             } catch (error) {
                 console.error('Screen share error:', error);
@@ -959,18 +1116,21 @@
             if (mediaStream) {
                 const audioTracks = mediaStream.getAudioTracks();
                 if (audioTracks.length > 0) {
-                    const enabled = !audioTracks[0].enabled;
-                    audioTracks[0].enabled = enabled;
-                    updateMicrophoneIcon(enabled);
+                    micEnabled = !audioTracks[0].enabled;
+                    audioTracks[0].enabled = micEnabled;
+                    updateMicrophoneIcon();
                 }
+            } else {
+                alert('Please start camera or screen share first');
             }
         }
 
-        function updateMicrophoneIcon(enabled) {
-            const micBtn = document.querySelector('.tool-btn:nth-child(3) i');
-            if (micBtn) {
-                micBtn.className = enabled ? 'fas fa-microphone' : 'fas fa-microphone-slash';
+        function updateMicrophoneIcon() {
+            const micIcon = micBtn.querySelector('i');
+            if (micIcon) {
+                micIcon.className = micEnabled ? 'fas fa-microphone' : 'fas fa-microphone-slash';
             }
+            micBtn.classList.toggle('active', micEnabled);
         }
 
         function stopCamera() {
@@ -983,6 +1143,10 @@
                 if (animationFrame) {
                     cancelAnimationFrame(animationFrame);
                 }
+                
+                // Update UI
+                cameraBtn.classList.remove('active');
+                screenBtn.classList.remove('active');
             }
         }
 
@@ -1092,7 +1256,7 @@
         }
 
         function renderOverlaysToCanvas() {
-            if (!videoPreview.videoWidth) {
+            if (!videoPreview.videoWidth || !overlayEditor.clientWidth) {
                 animationFrame = requestAnimationFrame(renderOverlaysToCanvas);
                 return;
             }
@@ -1104,23 +1268,27 @@
             const ctx = overlayCanvas.getContext('2d');
             ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
+            // Calculate scaling factor
+            const scaleX = overlayCanvas.width / overlayEditor.clientWidth;
+            const scaleY = overlayCanvas.height / overlayEditor.clientHeight;
+
             // Draw overlays
             overlayItems.forEach(item => {
-                const left = parseInt(item.style.left) * (overlayCanvas.width / overlayEditor.clientWidth);
-                const top = parseInt(item.style.top) * (overlayCanvas.height / overlayEditor.clientHeight);
+                const left = parseInt(item.style.left) * scaleX;
+                const top = parseInt(item.style.top) * scaleY;
 
                 if (item.type === 'text') {
-                    ctx.font = `${item.style.fontWeight} ${item.style.fontSize} ${item.style.fontFamily}`;
+                    ctx.font = `${item.style.fontWeight} ${parseInt(item.style.fontSize) * scaleX}px ${item.style.fontFamily}`;
                     ctx.fillStyle = item.style.color;
                     ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                    ctx.shadowBlur = 10;
-                    ctx.shadowOffsetX = 2;
-                    ctx.shadowOffsetY = 2;
-                    ctx.fillText(item.content, left, top + parseInt(item.style.fontSize));
+                    ctx.shadowBlur = 10 * scaleX;
+                    ctx.shadowOffsetX = 2 * scaleX;
+                    ctx.shadowOffsetY = 2 * scaleY;
+                    ctx.fillText(item.content, left, top + (parseInt(item.style.fontSize) * scaleY));
                 } else {
                     const img = new Image();
                     img.src = item.content;
-                    const width = parseInt(item.style.width);
+                    const width = parseInt(item.style.width) * scaleX;
                     const height = (item.height / item.width) * width;
                     ctx.drawImage(img, left, top, width, height);
                 }
@@ -1233,8 +1401,13 @@
         // ==================== YOUTUBE STREAMING ====================
         function startYouTubeStream() {
             if (!currentUser) {
-                alert('Please login first to stream to YouTube');
-                openModal();
+                alert('Please login with Google first');
+                return;
+            }
+
+            if (!youtubeUser) {
+                alert('Please sign in to YouTube first');
+                signInToYouTube();
                 return;
             }
 
@@ -1243,7 +1416,6 @@
 
             if (!rtmpUrl || !streamKey) {
                 alert('Please enter both RTMP URL and Stream Key');
-                openModal();
                 return;
             }
 
@@ -1260,7 +1432,7 @@
             document.getElementById('youtubeStopBtn').style.display = 'block';
             
             streamStatus.textContent = 'Live on YouTube';
-            statusDot.classList.add('live');
+            statusDot.classList.add('youtube');
             
             // Simulate viewer count
             let viewers = 0;
@@ -1282,8 +1454,11 @@
             document.getElementById('youtubeStartBtn').style.display = 'block';
             document.getElementById('youtubeStopBtn').style.display = 'none';
             
-            streamStatus.textContent = 'Offline';
-            statusDot.classList.remove('live');
+            streamStatus.textContent = mediaStream ? 'Camera Active' : 'Offline';
+            statusDot.classList.remove('youtube');
+            if (mediaStream) {
+                statusDot.classList.add('live');
+            }
             viewerCount.textContent = '0 viewers';
             
             alert('YouTube stream stopped');
@@ -1298,7 +1473,7 @@
 
             recordedChunks = [];
             
-            // Create a composite stream with overlays (simplified)
+            // Create a composite stream with overlays
             const canvasStream = overlayCanvas.captureStream(30);
             const audioTracks = mediaStream.getAudioTracks();
             
@@ -1360,23 +1535,17 @@
 
         function updateStreamStatus(isLive) {
             if (isLive) {
-                statusDot.classList.add('live');
-                streamStatus.textContent = 'Camera Active';
+                if (!youtubeStreamActive) {
+                    statusDot.classList.add('live');
+                    streamStatus.textContent = 'Camera Active';
+                }
             } else {
                 statusDot.classList.remove('live');
+                statusDot.classList.remove('youtube');
                 streamStatus.textContent = 'Offline';
                 bitrateEl.textContent = '0 Kbps';
                 streamHealth.textContent = 'N/A';
             }
-        }
-
-        // ==================== MODAL FUNCTIONS ====================
-        function openModal() {
-            document.getElementById('youtubeModal').classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('youtubeModal').classList.remove('active');
         }
 
         // ==================== INITIALIZATION ====================
