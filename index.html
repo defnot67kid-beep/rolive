@@ -23,16 +23,17 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            background: black;
         }
         
         #videoPlayer {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: contain; /* Maintains aspect ratio */
             background: black;
         }
         
-        #dropZone {
+        #overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -41,167 +42,357 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             color: white;
-            font-size: 24px;
-            text-align: center;
             z-index: 1000;
-            border: 4px dashed #666;
+            backdrop-filter: blur(5px);
         }
         
-        #dropZone.dragover {
-            border-color: #fff;
-            background: rgba(255, 255, 255, 0.1);
+        .file-input-container {
+            background: #1a1a1a;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            border: 2px solid #333;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
         }
         
-        #dropZone p {
-            padding: 20px;
+        .file-input-container h2 {
+            margin-bottom: 20px;
+            color: #fff;
+            font-size: 24px;
+        }
+        
+        .file-input-container p {
+            margin-bottom: 30px;
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .file-input-label {
+            display: inline-block;
+            padding: 15px 40px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: none;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .file-input-label:hover {
+            background: #45a049;
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        }
+        
+        .file-input-label:active {
+            transform: scale(0.95);
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        #selectedFileInfo {
+            margin-top: 20px;
+            color: #4CAF50;
+            font-size: 14px;
+            min-height: 20px;
         }
         
         .hidden {
             display: none !important;
         }
+        
+        .video-info {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 12px;
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 18px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 2000;
+            display: none;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .exit-note {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+            z-index: 100;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
     <div id="container">
-        <video id="videoPlayer" playsinline loop></video>
+        <video id="videoPlayer" playsinline></video>
     </div>
     
-    <div id="dropZone">
-        <p>🎬 Drop your video file here<br><br>⚠️ Video will play in fullscreen with no controls<br>Press ESC to exit (only way to stop)</p>
+    <div id="overlay">
+        <div class="file-input-container">
+            <h2>🎬 Select Video File</h2>
+            <p>Choose a video file from your device<br>Video will play in fullscreen with no controls</p>
+            
+            <label for="fileInput" class="file-input-label">
+                📁 Browse Files
+            </label>
+            <input type="file" id="fileInput" accept="video/*">
+            
+            <div id="selectedFileInfo"></div>
+            
+            <p style="margin-top: 30px; font-size: 12px; color: #666;">
+                ⚠️ Press ESC to exit fullscreen (only way to stop)
+            </p>
+        </div>
+    </div>
+    
+    <div class="loading" id="loadingIndicator">
+        Loading video...
+    </div>
+    
+    <div class="exit-note hidden" id="exitNote">
+        Press ESC to exit
+    </div>
+    
+    <div class="video-info hidden" id="videoInfo">
+        <span id="resolution"></span>
     </div>
 
     <script>
         const videoPlayer = document.getElementById('videoPlayer');
-        const dropZone = document.getElementById('dropZone');
+        const overlay = document.getElementById('overlay');
+        const fileInput = document.getElementById('fileInput');
+        const selectedFileInfo = document.getElementById('selectedFileInfo');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const exitNote = document.getElementById('exitNote');
+        const videoInfo = document.getElementById('videoInfo');
+        const resolution = document.getElementById('resolution');
         
         // Disable all user interactions with video
-        videoPlayer.addEventListener('click', (e) => {
-            e.preventDefault();
-            return false;
-        });
+        function disableVideoInteractions() {
+            videoPlayer.style.pointerEvents = 'none';
+            
+            // Remove controls attribute
+            videoPlayer.removeAttribute('controls');
+            
+            // Prevent any default video behaviors
+            videoPlayer.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            });
+            
+            videoPlayer.addEventListener('dblclick', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            });
+            
+            videoPlayer.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            });
+            
+            // Force play if any pause attempt
+            videoPlayer.addEventListener('pause', (e) => {
+                e.preventDefault();
+                if (videoPlayer.src && !videoPlayer.ended) {
+                    videoPlayer.play().catch(() => {});
+                }
+            });
+            
+            // Handle seeking attempts
+            videoPlayer.addEventListener('seeking', (e) => {
+                e.preventDefault();
+                // Reset to current time if seeking attempted
+                if (videoPlayer.currentTime !== videoPlayer._lastTime) {
+                    videoPlayer.currentTime = videoPlayer._lastTime || 0;
+                }
+            });
+            
+            // Track current time
+            videoPlayer.addEventListener('timeupdate', () => {
+                videoPlayer._lastTime = videoPlayer.currentTime;
+            });
+        }
         
-        videoPlayer.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            return false;
-        });
-        
-        videoPlayer.addEventListener('keydown', (e) => {
-            e.preventDefault();
-            return false;
-        });
-        
-        videoPlayer.addEventListener('play', (e) => {
-            e.preventDefault();
-            // Force video to keep playing
-            videoPlayer.play();
-        });
-        
-        videoPlayer.addEventListener('pause', (e) => {
-            e.preventDefault();
-            // Immediately resume if paused
-            videoPlayer.play();
-        });
-        
-        // Prevent any keyboard shortcuts
+        // Block keyboard shortcuts (except ESC)
         document.addEventListener('keydown', (e) => {
-            // Allow ESC to exit fullscreen (only way to stop)
+            // Allow ESC to exit fullscreen
             if (e.key === 'Escape') {
                 return true;
             }
             
-            // Block spacebar (pause), arrow keys (seek), etc.
-            if (e.code === 'Space' || 
-                e.key === 'ArrowLeft' || 
-                e.key === 'ArrowRight' || 
-                e.key === 'ArrowUp' || 
-                e.key === 'ArrowDown' ||
-                e.key === 'f' ||  // fullscreen
-                e.key === 'F') {
+            // Block all media keys and common shortcuts
+            const blockedKeys = [
+                ' ', 'Space', // Spacebar for play/pause
+                'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', // Seeking
+                'f', 'F', // Fullscreen
+                'k', 'K', // YouTube play/pause
+                'm', 'M', // Mute
+                'p', 'P', // Play
+                '[', ']', // Speed changes
+                '<', '>', // Frame advance
+                'Home', 'End', // Seek to start/end
+                'PageUp', 'PageDown' // Chapter navigation
+            ];
+            
+            if (blockedKeys.includes(e.key) || blockedKeys.includes(e.code)) {
                 e.preventDefault();
+                e.stopPropagation();
                 return false;
             }
-        });
-        
-        // Prevent mouse interactions
-        videoPlayer.style.pointerEvents = 'none';
-        
-        // Handle file drop
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('dragover');
-        });
-        
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('dragover');
-        });
-        
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('dragover');
             
-            const file = e.dataTransfer.files[0];
-            
-            if (file && file.type.startsWith('video/')) {
-                const videoUrl = URL.createObjectURL(file);
-                videoPlayer.src = videoUrl;
-                
-                // Hide drop zone
-                dropZone.classList.add('hidden');
-                
-                // Force fullscreen
-                const container = document.getElementById('container');
-                if (container.requestFullscreen) {
-                    container.requestFullscreen();
-                } else if (container.webkitRequestFullscreen) {
-                    container.webkitRequestFullscreen();
-                } else if (container.msRequestFullscreen) {
-                    container.msRequestFullscreen();
-                }
-                
-                // Start playing
-                videoPlayer.play().catch(err => {
-                    console.log('Autoplay failed:', err);
-                });
-                
-                // Force loop (optional - remove if you want it to stop at end)
-                videoPlayer.loop = true;
-                
-                // Clean up object URL when video is done
-                videoPlayer.addEventListener('ended', () => {
-                    URL.revokeObjectURL(videoUrl);
-                });
-            } else {
-                alert('Please drop a valid video file');
+            // Block any key when video is playing (except ESC)
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
             }
-        });
+        }, true); // Use capture to ensure we get the event first
         
-        // Handle fullscreen change
-        document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement) {
-                // If exited fullscreen, show drop zone again
-                dropZone.classList.remove('hidden');
-                videoPlayer.pause();
-                videoPlayer.src = '';
-            }
-        });
-        
-        document.addEventListener('webkitfullscreenchange', () => {
-            if (!document.webkitFullscreenElement) {
-                dropZone.classList.remove('hidden');
-                videoPlayer.pause();
-                videoPlayer.src = '';
-            }
-        });
-        
-        // Prevent right-click context menu on entire page
+        // Prevent right-click everywhere
         document.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             return false;
         });
         
-        console.log('Ready - drop a video file to start forced fullscreen playback');
+        // Handle file selection
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            
+            if (file) {
+                // Show file info
+                selectedFileInfo.textContent = `Selected: ${file.name}`;
+                
+                // Show loading
+                loadingIndicator.classList.add('show');
+                
+                // Create video URL
+                const videoUrl = URL.createObjectURL(file);
+                
+                // Set video source
+                videoPlayer.src = videoUrl;
+                
+                // Get video dimensions when metadata is loaded
+                videoPlayer.onloadedmetadata = () => {
+                    resolution.textContent = `${videoPlayer.videoWidth}x${videoPlayer.videoHeight}`;
+                    
+                    // Hide overlay
+                    overlay.classList.add('hidden');
+                    
+                    // Show exit note and video info
+                    exitNote.classList.remove('hidden');
+                    videoInfo.classList.remove('hidden');
+                    
+                    // Force fullscreen
+                    const container = document.getElementById('container');
+                    if (container.requestFullscreen) {
+                        container.requestFullscreen();
+                    } else if (container.webkitRequestFullscreen) {
+                        container.webkitRequestFullscreen();
+                    } else if (container.msRequestFullscreen) {
+                        container.msRequestFullscreen();
+                    }
+                    
+                    // Start playing
+                    videoPlayer.play()
+                        .then(() => {
+                            loadingIndicator.classList.remove('show');
+                        })
+                        .catch(err => {
+                            console.log('Autoplay failed:', err);
+                            loadingIndicator.classList.remove('show');
+                            alert('Click OK to play video');
+                            // Try playing again with user interaction
+                            videoPlayer.play();
+                        });
+                };
+                
+                // Handle video errors
+                videoPlayer.onerror = () => {
+                    loadingIndicator.classList.remove('show');
+                    alert('Error loading video. Please try another file.');
+                };
+                
+                // Clean up object URL when video is done
+                videoPlayer.onended = () => {
+                    // Loop the video (optional - remove if you don't want looping)
+                    videoPlayer.play();
+                };
+                
+                // Apply disabled interactions
+                disableVideoInteractions();
+            }
+        });
+        
+        // Handle fullscreen change
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        
+        function handleFullscreenChange() {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                // If exited fullscreen, show overlay again
+                overlay.classList.remove('hidden');
+                exitNote.classList.add('hidden');
+                videoInfo.classList.add('hidden');
+                
+                // Pause and clear video
+                videoPlayer.pause();
+                videoPlayer.src = '';
+                videoPlayer.load();
+                
+                // Clear file input
+                fileInput.value = '';
+                selectedFileInfo.textContent = '';
+                
+                // Clean up object URL
+                if (videoPlayer.src) {
+                    URL.revokeObjectURL(videoPlayer.src);
+                }
+            }
+        }
+        
+        // Prevent drag and drop on window (to avoid browser default behavior)
+        document.addEventListener('dragover', (e) => e.preventDefault());
+        document.addEventListener('drop', (e) => e.preventDefault());
+        
+        // Handle visibility change (if user switches tabs)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && videoPlayer.src && (document.fullscreenElement || document.webkitFullscreenElement)) {
+                // Ensure video keeps playing when returning to tab
+                videoPlayer.play();
+            }
+        });
+        
+        console.log('Ready - select a video file to start forced fullscreen playback');
     </script>
 </body>
 </html>
