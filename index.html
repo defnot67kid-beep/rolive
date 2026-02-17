@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forced Fullscreen Video - Seamless Loop</title>
+    <title>Universal Video Player - Forced Fullscreen</title>
     <style>
         * {
             margin: 0;
@@ -14,7 +14,7 @@
         body {
             background: black;
             overflow: hidden;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
         }
         
         #container {
@@ -24,12 +24,19 @@
             justify-content: center;
             align-items: center;
             background: black;
+            position: relative;
         }
         
         #videoPlayer {
             width: 100%;
             height: 100%;
             object-fit: contain;
+            background: black;
+        }
+        
+        #youtubePlayer {
+            width: 100%;
+            height: 100%;
             background: black;
         }
         
@@ -45,50 +52,93 @@
             background: rgba(0, 0, 0, 0.95);
             color: white;
             z-index: 1000;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(10px);
+            overflow-y: auto;
+            padding: 20px;
         }
         
-        .file-input-container {
+        .selector-container {
             background: #1a1a1a;
             padding: 40px;
-            border-radius: 20px;
+            border-radius: 30px;
             text-align: center;
-            max-width: 500px;
-            width: 90%;
+            max-width: 600px;
+            width: 100%;
             border: 2px solid #333;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.7);
         }
         
-        .file-input-container h2 {
-            margin-bottom: 20px;
-            color: #fff;
-            font-size: 24px;
-        }
-        
-        .file-input-container p {
+        .selector-container h2 {
             margin-bottom: 30px;
+            color: #fff;
+            font-size: 32px;
+            font-weight: 300;
+        }
+        
+        .selector-container h2 span {
+            color: #4CAF50;
+            font-weight: 600;
+        }
+        
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 12px 30px;
+            background: transparent;
+            border: none;
             color: #888;
-            font-size: 14px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .tab.active {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .file-input-label {
             display: inline-block;
-            padding: 15px 40px;
+            padding: 18px 50px;
             background: #4CAF50;
             color: white;
             border-radius: 50px;
             cursor: pointer;
             font-size: 18px;
-            font-weight: bold;
+            font-weight: 600;
             transition: all 0.3s;
             border: none;
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
+            margin: 20px 0;
         }
         
         .file-input-label:hover {
             background: #45a049;
             transform: scale(1.05);
-            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
         }
         
         .file-input-label:active {
@@ -104,6 +154,89 @@
             color: #4CAF50;
             font-size: 14px;
             min-height: 20px;
+        }
+        
+        .youtube-input-container {
+            padding: 20px 0;
+        }
+        
+        #youtubeUrl {
+            width: 100%;
+            padding: 18px 20px;
+            background: #2a2a2a;
+            border: 2px solid #3a3a3a;
+            border-radius: 50px;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        #youtubeUrl:focus {
+            outline: none;
+            border-color: #4CAF50;
+            background: #2a2a2a;
+        }
+        
+        #youtubeUrl::placeholder {
+            color: #666;
+        }
+        
+        .youtube-button {
+            padding: 18px 50px;
+            background: #FF0000;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(255, 0, 0, 0.4);
+        }
+        
+        .youtube-button:hover {
+            background: #cc0000;
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(255, 0, 0, 0.5);
+        }
+        
+        .youtube-button:active {
+            transform: scale(0.95);
+        }
+        
+        .examples {
+            margin-top: 30px;
+            padding: 20px;
+            background: #222;
+            border-radius: 20px;
+            text-align: left;
+        }
+        
+        .examples p {
+            color: #888;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .examples ul {
+            list-style: none;
+            color: #4CAF50;
+            font-size: 12px;
+        }
+        
+        .examples li {
+            margin: 5px 0;
+            padding: 5px;
+            background: #2a2a2a;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .examples li:hover {
+            background: #333;
+            color: #ff4444;
         }
         
         .hidden {
@@ -127,15 +260,24 @@
             transform: translate(-50%, -50%);
             color: white;
             font-size: 18px;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 25px 40px;
+            border-radius: 60px;
             z-index: 2000;
             display: none;
+            border: 2px solid #4CAF50;
+            box-shadow: 0 0 30px rgba(76, 175, 80, 0.3);
         }
         
         .loading.show {
             display: block;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; box-shadow: 0 0 50px rgba(76, 175, 80, 0.5); }
+            100% { opacity: 0.8; }
         }
         
         .exit-note {
@@ -146,6 +288,9 @@
             font-size: 12px;
             z-index: 100;
             pointer-events: none;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 15px;
+            border-radius: 50px;
         }
         
         .loop-indicator {
@@ -156,28 +301,85 @@
             font-size: 11px;
             z-index: 100;
             pointer-events: none;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 15px;
+            border-radius: 50px;
+        }
+        
+        .source-indicator {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 12px;
+            z-index: 100;
+            pointer-events: none;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 15px;
+            border-radius: 50px;
+        }
+        
+        .error-message {
+            color: #ff4444;
+            margin-top: 15px;
+            font-size: 14px;
+            min-height: 20px;
         }
     </style>
 </head>
 <body>
     <div id="container">
-        <video id="videoPlayer" playsinline></video>
+        <video id="videoPlayer" playsinline style="display: none;"></video>
+        <div id="youtubePlayer" style="display: none;"></div>
     </div>
     
     <div id="overlay">
-        <div class="file-input-container">
-            <h2>🎬 Select Video File</h2>
-            <p>Choose a video file from your device<br>Video will play in fullscreen with seamless looping</p>
+        <div class="selector-container">
+            <h2>🎬 <span>Universal</span> Video Player</h2>
             
-            <label for="fileInput" class="file-input-label">
-                📁 Browse Files
-            </label>
-            <input type="file" id="fileInput" accept="video/*">
+            <div class="tab-container">
+                <button class="tab active" onclick="switchTab('file')">📁 Local File</button>
+                <button class="tab" onclick="switchTab('youtube')">▶️ YouTube Link</button>
+            </div>
             
-            <div id="selectedFileInfo"></div>
+            <div id="fileTab" class="tab-content active">
+                <p style="color: #888; margin-bottom: 20px;">Select a video file from your device</p>
+                
+                <label for="fileInput" class="file-input-label">
+                    📁 Browse Files
+                </label>
+                <input type="file" id="fileInput" accept="video/*">
+                
+                <div id="selectedFileInfo"></div>
+            </div>
             
-            <p style="margin-top: 30px; font-size: 12px; color: #666;">
-                ⚠️ Press ESC to exit fullscreen (only way to stop)
+            <div id="youtubeTab" class="tab-content">
+                <div class="youtube-input-container">
+                    <p style="color: #888; margin-bottom: 20px;">Paste any YouTube link</p>
+                    
+                    <input type="text" id="youtubeUrl" placeholder="https://www.youtube.com/watch?v=...">
+                    
+                    <button class="youtube-button" onclick="loadYouTubeVideo()">
+                        ▶️ Load & Play
+                    </button>
+                    
+                    <div class="examples">
+                        <p>📋 Examples (click to try):</p>
+                        <ul>
+                            <li onclick="fillExample('https://www.youtube.com/watch?v=dQw4w9WgXcQ')">🎵 Rick Astley - Never Gonna Give You Up</li>
+                            <li onclick="fillExample('https://youtu.be/jNQXAC9IVRw')">📹 First YouTube video ever</li>
+                            <li onclick="fillExample('https://www.youtube.com/watch?v=QH2-TGUlwu4')">🌌 4K Nature Relaxation</li>
+                            <li onclick="fillExample('https://m.youtube.com/watch?v=LXb3EKWsInQ')">🎮 10 Hours of Absolute Silence</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="error-message" id="errorMessage"></div>
+            
+            <p style="margin-top: 30px; font-size: 12px; color: #666; border-top: 1px solid #333; padding-top: 20px;">
+                ⚠️ Press ESC to exit fullscreen (only way to stop)<br>
+                Videos loop seamlessly with no controls
             </p>
         </div>
     </div>
@@ -190,6 +392,10 @@
         Press ESC to exit
     </div>
     
+    <div class="source-indicator hidden" id="sourceIndicator">
+        <span id="sourceText"></span>
+    </div>
+    
     <div class="video-info hidden" id="videoInfo">
         <span id="resolution"></span>
     </div>
@@ -199,29 +405,211 @@
     </div>
 
     <script>
+        // DOM Elements
         const videoPlayer = document.getElementById('videoPlayer');
+        const youtubePlayer = document.getElementById('youtubePlayer');
         const overlay = document.getElementById('overlay');
         const fileInput = document.getElementById('fileInput');
         const selectedFileInfo = document.getElementById('selectedFileInfo');
+        const youtubeUrl = document.getElementById('youtubeUrl');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const exitNote = document.getElementById('exitNote');
+        const sourceIndicator = document.getElementById('sourceIndicator');
+        const sourceText = document.getElementById('sourceText');
         const videoInfo = document.getElementById('videoInfo');
         const resolution = document.getElementById('resolution');
         const loopIndicator = document.getElementById('loopIndicator');
+        const errorMessage = document.getElementById('errorMessage');
         
-        // Variables for seamless looping
-        let isLooping = false;
+        // YouTube API variables
+        let ytPlayer = null;
+        let isYouTubeReady = false;
+        let pendingYouTubeId = null;
+        
+        // Loop variables
         let loopCheckInterval = null;
         let lastTime = 0;
         
-        // Disable all user interactions with video
+        // Load YouTube API
+        function loadYouTubeAPI() {
+            if (window.YT) {
+                isYouTubeReady = true;
+                return;
+            }
+            
+            const tag = document.createElement('script');
+            tag.src = 'https://www.youtube.com/iframe_api';
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        }
+        
+        // YouTube API ready
+        window.onYouTubeIframeAPIReady = function() {
+            isYouTubeReady = true;
+            if (pendingYouTubeId) {
+                initYouTubePlayer(pendingYouTubeId);
+                pendingYouTubeId = null;
+            }
+        };
+        
+        // Initialize YouTube player
+        function initYouTubePlayer(videoId) {
+            if (!isYouTubeReady) {
+                pendingYouTubeId = videoId;
+                return;
+            }
+            
+            if (ytPlayer) {
+                ytPlayer.destroy();
+            }
+            
+            youtubePlayer.style.display = 'block';
+            videoPlayer.style.display = 'none';
+            
+            ytPlayer = new YT.Player('youtubePlayer', {
+                videoId: videoId,
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 0,
+                    'disablekb': 1,
+                    'fs': 0,
+                    'iv_load_policy': 3,
+                    'modestbranding': 1,
+                    'playsinline': 1,
+                    'rel': 0,
+                    'showinfo': 0,
+                    'loop': 1,
+                    'mute': 0
+                },
+                events: {
+                    'onReady': onYouTubeReady,
+                    'onStateChange': onYouTubeStateChange,
+                    'onError': onYouTubeError
+                }
+            });
+        }
+        
+        // YouTube ready
+        function onYouTubeReady(event) {
+            loadingIndicator.classList.remove('show');
+            
+            // Force fullscreen
+            const container = document.getElementById('container');
+            if (container.requestFullscreen) {
+                container.requestFullscreen();
+            } else if (container.webkitRequestFullscreen) {
+                container.webkitRequestFullscreen();
+            } else if (container.msRequestFullscreen) {
+                container.msRequestFullscreen();
+            }
+            
+            // Set up seamless loop for YouTube
+            setupYouTubeSeamlessLoop();
+            
+            // Update indicators
+            sourceText.textContent = 'YouTube';
+            sourceIndicator.classList.remove('hidden');
+            exitNote.classList.remove('hidden');
+            loopIndicator.classList.remove('hidden');
+            videoInfo.classList.add('hidden'); // YouTube doesn't give resolution easily
+            
+            // Hide overlay
+            overlay.classList.add('hidden');
+        }
+        
+        // YouTube state change
+        function onYouTubeStateChange(event) {
+            // Block all controls
+            if (event.data === YT.PlayerState.PAUSED) {
+                event.target.playVideo();
+            }
+            
+            // Handle ended for extra loop safety
+            if (event.data === YT.PlayerState.ENDED) {
+                event.target.playVideo();
+            }
+        }
+        
+        // YouTube error
+        function onYouTubeError(event) {
+            loadingIndicator.classList.remove('show');
+            errorMessage.textContent = 'Error loading YouTube video. Please check the URL.';
+            console.error('YouTube error:', event);
+        }
+        
+        // YouTube seamless loop
+        function setupYouTubeSeamlessLoop() {
+            if (loopCheckInterval) {
+                clearInterval(loopCheckInterval);
+            }
+            
+            loopCheckInterval = setInterval(() => {
+                if (!ytPlayer || !document.fullscreenElement) return;
+                
+                const state = ytPlayer.getPlayerState();
+                const currentTime = ytPlayer.getCurrentTime();
+                const duration = ytPlayer.getDuration();
+                
+                // If paused but shouldn't be
+                if (state === YT.PlayerState.PAUSED && duration > 0 && currentTime < duration - 0.5) {
+                    ytPlayer.playVideo();
+                }
+                
+                // Loop at the end
+                if (state === YT.PlayerState.ENDED || (duration > 0 && currentTime >= duration - 0.1)) {
+                    ytPlayer.seekTo(0, true);
+                    ytPlayer.playVideo();
+                }
+                
+            }, 100);
+        }
+        
+        // Local video seamless loop
+        function setupLocalVideoSeamlessLoop() {
+            if (loopCheckInterval) {
+                clearInterval(loopCheckInterval);
+            }
+            
+            loopCheckInterval = setInterval(() => {
+                if (!videoPlayer.src || !document.fullscreenElement) return;
+                
+                const currentTime = videoPlayer.currentTime;
+                const duration = videoPlayer.duration;
+                
+                if (duration > 0 && currentTime >= duration - 0.05) {
+                    videoPlayer.currentTime = 0;
+                    if (videoPlayer.paused) {
+                        videoPlayer.play().catch(() => {});
+                    }
+                }
+                
+                if (videoPlayer.paused && !videoPlayer.ended && duration > 0 && currentTime < duration - 0.5) {
+                    videoPlayer.play().catch(() => {});
+                }
+                
+                if (lastTime === currentTime && !videoPlayer.paused && duration > 0 && currentTime < duration - 0.5) {
+                    if (currentTime > 0) {
+                        videoPlayer.currentTime = currentTime - 0.01;
+                        videoPlayer.currentTime = currentTime;
+                    }
+                }
+                
+                lastTime = currentTime;
+                
+            }, 100);
+            
+            videoPlayer.addEventListener('ended', function(e) {
+                e.preventDefault();
+                this.currentTime = 0;
+                this.play().catch(() => {});
+            });
+        }
+        
+        // Disable local video interactions
         function disableVideoInteractions() {
             videoPlayer.style.pointerEvents = 'none';
-            
-            // Remove controls attribute
             videoPlayer.removeAttribute('controls');
             
-            // Prevent any default video behaviors
             videoPlayer.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -240,103 +628,28 @@
                 return false;
             });
             
-            // Force play if any pause attempt - FIXED: Don't interfere with natural playback
             videoPlayer.addEventListener('pause', (e) => {
                 e.preventDefault();
-                // Only resume if we're not at the end and it wasn't intentional
                 if (videoPlayer.src && !videoPlayer.ended && videoPlayer.currentTime < videoPlayer.duration - 0.5) {
                     videoPlayer.play().catch(() => {});
                 }
             });
             
-            // Track current time
             videoPlayer.addEventListener('timeupdate', () => {
                 lastTime = videoPlayer.currentTime;
             });
         }
         
-        // Setup seamless looping - FIXED: No more sound overlay or stopping
-        function setupSeamlessLoop() {
-            // Clear any existing interval
-            if (loopCheckInterval) {
-                clearInterval(loopCheckInterval);
-            }
-            
-            // Use a single interval for loop checking
-            loopCheckInterval = setInterval(() => {
-                if (!videoPlayer.src || videoPlayer.ended || !document.fullscreenElement) return;
-                
-                const currentTime = videoPlayer.currentTime;
-                const duration = videoPlayer.duration;
-                
-                // If we're at the end or very close, loop
-                if (duration > 0 && currentTime >= duration - 0.05) {
-                    // Set time to beginning
-                    videoPlayer.currentTime = 0;
-                    
-                    // Ensure it's playing
-                    if (videoPlayer.paused) {
-                        videoPlayer.play().catch(() => {});
-                    }
-                }
-                
-                // FIXED: Detect if video stopped playing but shouldn't have
-                if (videoPlayer.paused && !videoPlayer.ended && duration > 0 && currentTime < duration - 0.5) {
-                    videoPlayer.play().catch(() => {});
-                }
-                
-                // FIXED: Detect if video is stuck (same time for too long)
-                if (lastTime === currentTime && !videoPlayer.paused && duration > 0 && currentTime < duration - 0.5) {
-                    // Force a small seek to unstuck if needed
-                    if (currentTime > 0) {
-                        videoPlayer.currentTime = currentTime - 0.01;
-                        videoPlayer.currentTime = currentTime;
-                    }
-                }
-                
-            }, 100); // Check every 100ms (smooth but not too heavy)
-            
-            // Handle ended event
-            videoPlayer.addEventListener('ended', function(e) {
-                e.preventDefault();
-                this.currentTime = 0;
-                this.play().catch(() => {});
-            });
-            
-            // FIXED: Handle waiting/stalled events
-            videoPlayer.addEventListener('waiting', () => {
-                // Brief pause then resume if stuck
-                setTimeout(() => {
-                    if (videoPlayer.paused && videoPlayer.src) {
-                        videoPlayer.play().catch(() => {});
-                    }
-                }, 500);
-            });
-            
-            videoPlayer.addEventListener('stalled', () => {
-                // Try to recover from stall
-                if (videoPlayer.src) {
-                    videoPlayer.play().catch(() => {});
-                }
-            });
-            
-            console.log('Seamless looping enabled');
-        }
-        
-        // Block keyboard shortcuts (except ESC)
+        // Block keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            // Allow ESC to exit fullscreen
             if (e.key === 'Escape') {
                 return true;
             }
             
-            // Block all media keys
             const blockedKeys = [
-                ' ', 'Space',
-                'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
-                'f', 'F',
-                'k', 'K',
-                'm', 'M'
+                ' ', 'Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+                'f', 'F', 'k', 'K', 'm', 'M', 'p', 'P', '[', ']', '<', '>',
+                'Home', 'End', 'PageUp', 'PageDown'
             ];
             
             if (blockedKeys.includes(e.key) || blockedKeys.includes(e.code)) {
@@ -345,7 +658,6 @@
                 return false;
             }
             
-            // Block any key when video is playing
             if (document.fullscreenElement || document.webkitFullscreenElement) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -353,43 +665,103 @@
             }
         }, true);
         
-        // Prevent right-click everywhere
+        // Prevent right-click
         document.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             return false;
         });
         
-        // Handle file selection
+        // Tab switching
+        window.switchTab = function(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            if (tab === 'file') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('fileTab').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('youtubeTab').classList.add('active');
+            }
+            
+            errorMessage.textContent = '';
+        };
+        
+        // Fill example YouTube URL
+        window.fillExample = function(url) {
+            youtubeUrl.value = url;
+            errorMessage.textContent = '';
+        };
+        
+        // Load YouTube video
+        window.loadYouTubeVideo = function() {
+            const url = youtubeUrl.value.trim();
+            if (!url) {
+                errorMessage.textContent = 'Please enter a YouTube URL';
+                return;
+            }
+            
+            // Extract video ID
+            const videoId = extractYouTubeId(url);
+            if (!videoId) {
+                errorMessage.textContent = 'Invalid YouTube URL';
+                return;
+            }
+            
+            errorMessage.textContent = '';
+            loadingIndicator.classList.add('show');
+            
+            // Hide file elements
+            videoPlayer.style.display = 'none';
+            youtubePlayer.style.display = 'block';
+            
+            // Load YouTube player
+            initYouTubePlayer(videoId);
+        };
+        
+        // Extract YouTube ID from URL
+        function extractYouTubeId(url) {
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([^&?#]+)/,
+                /youtube\.com\/watch\?.*[?&]v=([^&?#]+)/,
+                /m\.youtube\.com\/watch\?v=([^&?#]+)/
+            ];
+            
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match) return match[1];
+            }
+            
+            return null;
+        }
+        
+        // File input handler
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             
             if (file) {
-                // Show file info
+                youtubePlayer.style.display = 'none';
+                videoPlayer.style.display = 'block';
+                
                 selectedFileInfo.textContent = `Selected: ${file.name}`;
-                
-                // Show loading
                 loadingIndicator.classList.add('show');
+                errorMessage.textContent = '';
                 
-                // Create video URL
                 const videoUrl = URL.createObjectURL(file);
-                
-                // Set video source
                 videoPlayer.src = videoUrl;
                 videoPlayer.load();
                 
-                // Get video dimensions when metadata is loaded
                 videoPlayer.onloadedmetadata = () => {
                     resolution.textContent = `${videoPlayer.videoWidth}x${videoPlayer.videoHeight}`;
                     
-                    // Hide overlay
                     overlay.classList.add('hidden');
                     
-                    // Show exit note and video info
+                    sourceText.textContent = file.name.length > 30 ? file.name.substring(0, 27) + '...' : file.name;
+                    sourceIndicator.classList.remove('hidden');
                     exitNote.classList.remove('hidden');
                     videoInfo.classList.remove('hidden');
                     loopIndicator.classList.remove('hidden');
                     
-                    // Force fullscreen
                     const container = document.getElementById('container');
                     if (container.requestFullscreen) {
                         container.requestFullscreen();
@@ -399,93 +771,89 @@
                         container.msRequestFullscreen();
                     }
                     
-                    // Setup seamless looping
-                    setupSeamlessLoop();
+                    setupLocalVideoSeamlessLoop();
+                    disableVideoInteractions();
                     
-                    // Start playing with a slight delay to ensure fullscreen
                     setTimeout(() => {
                         videoPlayer.play()
                             .then(() => {
                                 loadingIndicator.classList.remove('show');
-                                console.log('Video playing successfully');
                             })
                             .catch(err => {
                                 console.log('Play failed:', err);
                                 loadingIndicator.classList.remove('show');
-                                
-                                // Try playing with user interaction
-                                const playPromise = videoPlayer.play();
-                                if (playPromise !== undefined) {
-                                    playPromise.catch(() => {
-                                        // Auto-play was prevented, but we're in fullscreen so it should work
-                                        setTimeout(() => videoPlayer.play(), 100);
-                                    });
-                                }
+                                setTimeout(() => videoPlayer.play(), 100);
                             });
                     }, 500);
                 };
                 
-                // Handle video errors
-                videoPlayer.onerror = (err) => {
-                    console.error('Video error:', err);
+                videoPlayer.onerror = () => {
                     loadingIndicator.classList.remove('show');
-                    alert('Error loading video. Please try another file.');
+                    errorMessage.textContent = 'Error loading video file';
                 };
-                
-                // Apply disabled interactions
-                disableVideoInteractions();
             }
         });
         
-        // Handle fullscreen change
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
-        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-        
+        // Fullscreen change handler
         function handleFullscreenChange() {
             if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                // Clear interval
                 if (loopCheckInterval) {
                     clearInterval(loopCheckInterval);
                     loopCheckInterval = null;
                 }
                 
-                // If exited fullscreen, show overlay again
                 overlay.classList.remove('hidden');
                 exitNote.classList.add('hidden');
+                sourceIndicator.classList.add('hidden');
                 videoInfo.classList.add('hidden');
                 loopIndicator.classList.add('hidden');
                 
-                // Pause and clear video
                 videoPlayer.pause();
                 videoPlayer.src = '';
                 videoPlayer.load();
+                videoPlayer.style.display = 'none';
                 
-                // Clear file input
+                if (ytPlayer) {
+                    ytPlayer.destroy();
+                    ytPlayer = null;
+                }
+                youtubePlayer.style.display = 'none';
+                
                 fileInput.value = '';
                 selectedFileInfo.textContent = '';
+                youtubeUrl.value = '';
+                errorMessage.textContent = '';
                 
-                // Clean up object URL
                 URL.revokeObjectURL(videoPlayer.src);
             }
         }
         
-        // Prevent drag and drop on window
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        
+        // Prevent drag and drop
         document.addEventListener('dragover', (e) => e.preventDefault());
         document.addEventListener('drop', (e) => e.preventDefault());
         
-        // Handle visibility change
+        // Visibility change
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && videoPlayer.src && (document.fullscreenElement || document.webkitFullscreenElement)) {
                 if (videoPlayer.paused) {
                     videoPlayer.play().catch(() => {});
                 }
             }
+            
+            if (!document.hidden && ytPlayer && (document.fullscreenElement || document.webkitFullscreenElement)) {
+                const state = ytPlayer.getPlayerState();
+                if (state === YT.PlayerState.PAUSED) {
+                    ytPlayer.playVideo();
+                }
+            }
         });
         
-        // FIXED: Remove any existing event listeners that might cause issues
-        videoPlayer.removeAttribute('loop');
-        
-        console.log('Ready - select a video file to start forced fullscreen playback with seamless looping');
+        // Initialize
+        loadYouTubeAPI();
+        console.log('Universal Video Player ready');
     </script>
 </body>
 </html>
