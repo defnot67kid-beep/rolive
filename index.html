@@ -3,1570 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROLive Studio - YouTube Live Streaming</title>
+    <title>Forced Fullscreen Video</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #ec4899;
-            --success: #22c55e;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --dark: #0f172a;
-            --light: #f8fafc;
-            --gray: #64748b;
-            --youtube: #ff0000;
-        }
-
+        
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: var(--dark);
-        }
-
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Header */
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px 30px;
-            margin-bottom: 25px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo-icon {
-            font-size: 32px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .logo-text {
-            font-size: 24px;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .logo-badge {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-
-        /* Auth Section */
-        .auth-section {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 8px 15px;
-            background: white;
-            border-radius: 50px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 2px solid var(--primary);
-        }
-
-        .user-name {
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .auth-btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, var(--danger), #dc2626);
-            color: white;
-        }
-
-        .btn-youtube {
-            background: linear-gradient(135deg, var(--youtube), #cc0000);
-            color: white;
-        }
-
-        /* Main Layout */
-        .studio-layout {
-            display: grid;
-            grid-template-columns: 1fr 380px;
-            gap: 25px;
-        }
-
-        /* Video Section */
-        .video-section {
-            background: var(--dark);
-            border-radius: 24px;
+            background: black;
             overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.1);
+            font-family: Arial, sans-serif;
         }
-
-        .video-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 16/9;
-            background: #000;
+        
+        #container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-
-        #videoPreview {
+        
+        #videoPlayer {
             width: 100%;
             height: 100%;
             object-fit: contain;
+            background: black;
         }
-
-        /* Canvas for Overlays */
-        #overlayCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-
-        /* Overlay Editor */
-        .overlay-editor {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-
-        .overlay-item {
-            position: absolute;
-            pointer-events: auto;
-            cursor: move;
-            user-select: none;
-            padding: 12px 20px;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(5px);
-            color: white;
-            border-radius: 12px;
-            border: 2px solid transparent;
-            transition: all 0.2s;
-            font-size: 24px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        .overlay-item:hover {
-            border-color: var(--primary);
-        }
-
-        .overlay-item.selected {
-            border-color: var(--success);
-            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.3);
-        }
-
-        .overlay-item img {
-            max-width: 200px;
-            max-height: 150px;
-            border-radius: 8px;
-        }
-
-        .overlay-controls {
-            position: absolute;
-            top: -40px;
-            right: 0;
-            display: flex;
-            gap: 5px;
-            background: white;
-            border-radius: 8px;
-            padding: 5px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            display: none;
-        }
-
-        .overlay-item.selected .overlay-controls {
-            display: flex;
-        }
-
-        .overlay-controls button {
-            width: 30px;
-            height: 30px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-
-        .overlay-controls button:hover {
-            transform: scale(1.1);
-        }
-
-        /* Controls Panel */
-        .controls-panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
-            padding: 25px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-            border: 1px solid rgba(255,255,255,0.2);
-            height: fit-content;
-        }
-
-        .panel-section {
-            margin-bottom: 30px;
-            padding-bottom: 25px;
-            border-bottom: 2px solid rgba(0,0,0,0.05);
-        }
-
-        .panel-section:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-
-        .section-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--dark);
-        }
-
-        .section-title i {
-            color: var(--primary);
-            font-size: 20px;
-        }
-
-        /* Stream Status */
-        .stream-status {
-            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .status-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .status-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--gray);
-        }
-
-        .status-dot.live {
-            background: var(--success);
-            animation: pulse 1.5s infinite;
-        }
-
-        .status-dot.youtube {
-            background: var(--youtube);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
-        }
-
-        .viewer-count {
-            background: var(--dark);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-        }
-
-        /* Input Groups */
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--gray);
-            font-size: 14px;
-        }
-
-        .input-group input,
-        .input-group textarea,
-        .input-group select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 14px;
-            transition: all 0.2s;
-            background: white;
-        }
-
-        .input-group input:focus,
-        .input-group textarea:focus,
-        .input-group select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        /* Buttons */
-        .btn {
-            padding: 14px 20px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn:last-child {
-            margin-bottom: 0;
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, var(--success), #16a34a);
-            color: white;
-        }
-
-        .btn-warning {
-            background: linear-gradient(135deg, var(--warning), #d97706);
-            color: white;
-        }
-
-        .btn-secondary {
-            background: linear-gradient(135deg, var(--gray), #475569);
-            color: white;
-        }
-
-        /* YouTube Settings */
-        .youtube-card {
-            background: linear-gradient(135deg, #ff0000, #cc0000);
-            border-radius: 16px;
-            padding: 20px;
-            color: white;
-            margin-bottom: 20px;
-        }
-
-        .youtube-card small {
-            display: block;
-            margin-top: 10px;
-            opacity: 0.9;
-            font-size: 12px;
-        }
-
-        .stream-key-input {
-            background: rgba(255,255,255,0.2);
-            border: 2px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 12px;
-            border-radius: 10px;
-            width: 100%;
-            margin: 10px 0;
-        }
-
-        .stream-key-input::placeholder {
-            color: rgba(255,255,255,0.6);
-        }
-
-        /* Tools Grid */
-        .tools-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .tool-btn {
-            padding: 12px;
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .tool-btn:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .tool-btn i {
-            font-size: 24px;
-            color: var(--primary);
-        }
-
-        .tool-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .tool-btn.active i {
-            color: white;
-        }
-
-        /* Color Picker */
-        .color-picker-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .color-picker-group input[type="color"] {
-            width: 60px;
-            height: 50px;
-            padding: 5px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-
-        /* Image Upload */
-        .upload-area {
-            border: 3px dashed #e2e8f0;
-            border-radius: 16px;
-            padding: 30px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: #f8fafc;
-        }
-
-        .upload-area:hover {
-            border-color: var(--primary);
-            background: #f1f5f9;
-        }
-
-        .upload-area i {
-            font-size: 40px;
-            color: var(--primary);
-            margin-bottom: 10px;
-        }
-
-        .upload-area input {
-            display: none;
-        }
-
-        /* Layers List */
-        .layers-list {
-            max-height: 200px;
-            overflow-y: auto;
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 10px;
-        }
-
-        .layer-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background: white;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .layer-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .layer-controls {
-            display: flex;
-            gap: 5px;
-        }
-
-        .layer-controls button {
-            width: 30px;
-            height: 30px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            background: #f1f5f9;
-            transition: all 0.2s;
-        }
-
-        .layer-controls button:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
+        
+        #dropZone {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
+            display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 24px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
             font-size: 24px;
-            cursor: pointer;
-            color: var(--gray);
+            text-align: center;
+            z-index: 1000;
+            border: 4px dashed #666;
         }
-
-        /* YouTube Connection Status */
-        .youtube-status {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 15px;
-            background: #f8fafc;
-            border-radius: 12px;
-            margin-bottom: 15px;
+        
+        #dropZone.dragover {
+            border-color: #fff;
+            background: rgba(255, 255, 255, 0.1);
         }
-
-        .youtube-connected {
-            color: var(--success);
-            font-weight: 600;
+        
+        #dropZone p {
+            padding: 20px;
         }
-
-        .youtube-disconnected {
-            color: var(--gray);
-        }
-
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .studio-layout {
-                grid-template-columns: 1fr;
-            }
+        
+        .hidden {
+            display: none !important;
         }
     </style>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <!-- Header with Firebase Auth -->
-        <div class="header">
-            <div class="logo">
-                <span class="logo-icon"><i class="fas fa-video"></i></span>
-                <span class="logo-text">ROLive Studio</span>
-                <span class="logo-badge">BETA</span>
-            </div>
-            <div class="auth-section" id="authSection">
-                <!-- Will be populated by Firebase -->
-            </div>
-        </div>
-
-        <!-- Main Studio -->
-        <div class="studio-layout">
-            <!-- Video Preview Section -->
-            <div class="video-section">
-                <div class="video-container" id="videoContainer">
-                    <video id="videoPreview" autoplay playsinline muted></video>
-                    <canvas id="overlayCanvas"></canvas>
-                    <div class="overlay-editor" id="overlayEditor"></div>
-                </div>
-            </div>
-
-            <!-- Controls Panel -->
-            <div class="controls-panel">
-                <!-- Stream Status -->
-                <div class="panel-section">
-                    <div class="stream-status">
-                        <div class="status-row">
-                            <div class="status-indicator">
-                                <div class="status-dot" id="statusDot"></div>
-                                <span id="streamStatus">Offline</span>
-                            </div>
-                            <span class="viewer-count" id="viewerCount">0 viewers</span>
-                        </div>
-                        <div class="status-row">
-                            <span>Stream Health</span>
-                            <span id="streamHealth">Excellent</span>
-                        </div>
-                        <div class="status-row">
-                            <span>Bitrate</span>
-                            <span id="bitrate">0 Kbps</span>
-                        </div>
-                    </div>
-
-                    <div class="tools-grid">
-                        <button class="tool-btn" onclick="startCamera()" id="cameraBtn">
-                            <i class="fas fa-camera"></i>
-                            <span>Camera</span>
-                        </button>
-                        <button class="tool-btn" onclick="startScreenShare()" id="screenBtn">
-                            <i class="fas fa-desktop"></i>
-                            <span>Screen</span>
-                        </button>
-                        <button class="tool-btn" onclick="toggleMicrophone()" id="micBtn">
-                            <i class="fas fa-microphone"></i>
-                            <span>Mic</span>
-                        </button>
-                        <button class="tool-btn" onclick="stopCamera()" id="stopBtn">
-                            <i class="fas fa-stop"></i>
-                            <span>Stop</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Text Overlay -->
-                <div class="panel-section">
-                    <div class="section-title">
-                        <i class="fas fa-font"></i>
-                        <span>Text Overlay</span>
-                    </div>
-                    <div class="input-group">
-                        <input type="text" id="overlayText" placeholder="Enter your text...">
-                    </div>
-                    <div class="color-picker-group">
-                        <input type="color" id="textColor" value="#ffffff">
-                        <select id="fontSize" style="flex: 1;">
-                            <option value="16">Small</option>
-                            <option value="24" selected>Medium</option>
-                            <option value="32">Large</option>
-                            <option value="48">Extra Large</option>
-                            <option value="64">Huge</option>
-                        </select>
-                    </div>
-                    <button class="btn btn-success" onclick="addTextOverlay()">
-                        <i class="fas fa-plus"></i> Add Text
-                    </button>
-                </div>
-
-                <!-- Image Overlay -->
-                <div class="panel-section">
-                    <div class="section-title">
-                        <i class="fas fa-image"></i>
-                        <span>Image Overlay</span>
-                    </div>
-                    <div class="upload-area" onclick="document.getElementById('imageUpload').click()">
-                        <input type="file" id="imageUpload" accept="image/*" onchange="handleImageUpload(event)">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        <p>Click to upload image</p>
-                        <small>PNG, JPG, GIF (Max 5MB)</small>
-                    </div>
-                </div>
-
-                <!-- Layers -->
-                <div class="panel-section">
-                    <div class="section-title">
-                        <i class="fas fa-layers"></i>
-                        <span>Layers</span>
-                    </div>
-                    <div class="layers-list" id="layersList"></div>
-                    <button class="btn btn-secondary" onclick="clearAllOverlays()">
-                        <i class="fas fa-trash"></i> Clear All
-                    </button>
-                </div>
-
-                <!-- YouTube Live -->
-                <div class="panel-section">
-                    <div class="section-title">
-                        <i class="fab fa-youtube"></i>
-                        <span>YouTube Live</span>
-                    </div>
-                    
-                    <!-- YouTube Connection Status -->
-                    <div class="youtube-status" id="youtubeStatus">
-                        <i class="fab fa-youtube" style="color: #ff0000;"></i>
-                        <span class="youtube-disconnected" id="youtubeStatusText">Not connected to YouTube</span>
-                    </div>
-                    
-                    <!-- YouTube Sign In Button -->
-                    <button class="btn btn-youtube" onclick="signInToYouTube()" id="youtubeSignInBtn">
-                        <i class="fab fa-youtube"></i> Sign in with YouTube
-                    </button>
-                    
-                    <!-- YouTube User Info (hidden by default) -->
-                    <div id="youtubeUserInfo" style="display: none; margin-bottom: 15px;">
-                        <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #f8fafc; border-radius: 10px;">
-                            <img id="youtubeAvatar" src="" style="width: 40px; height: 40px; border-radius: 50%;">
-                            <div>
-                                <div id="youtubeName" style="font-weight: 600;"></div>
-                                <div id="youtubeChannel" style="font-size: 12px; color: var(--gray);"></div>
-                            </div>
-                            <button onclick="signOutYouTube()" style="margin-left: auto; padding: 5px 10px; background: none; border: 1px solid var(--danger); border-radius: 5px; color: var(--danger); cursor: pointer;">Sign Out</button>
-                        </div>
-                    </div>
-                    
-                    <div class="youtube-card">
-                        <i class="fab fa-youtube" style="font-size: 24px;"></i>
-                        <h3>Go Live to YouTube</h3>
-                        <small>Stream directly to your YouTube channel</small>
-                        
-                        <div class="input-group">
-                            <label>RTMP URL</label>
-                            <input type="text" id="rtmpUrl" class="stream-key-input" value="rtmp://a.rtmp.youtube.com/live2" placeholder="RTMP URL">
-                        </div>
-                        
-                        <div class="input-group">
-                            <label>Stream Key</label>
-                            <input type="password" id="streamKey" class="stream-key-input" placeholder="xxxx-xxxx-xxxx-xxxx">
-                            <button onclick="toggleStreamKeyVisibility()" style="position: absolute; right: 30px; margin-top: -38px; background: none; border: none; color: white; cursor: pointer;">
-                                <i class="fas fa-eye" id="streamKeyToggle"></i>
-                            </button>
-                        </div>
-                        
-                        <small>Find your stream key in YouTube Studio → Create → Go Live</small>
-                    </div>
-
-                    <button class="btn btn-danger" onclick="startYouTubeStream()" id="youtubeStartBtn">
-                        <i class="fas fa-broadcast-tower"></i> START YOUTUBE STREAM
-                    </button>
-                    <button class="btn btn-secondary" onclick="stopYouTubeStream()" id="youtubeStopBtn" style="display: none;">
-                        <i class="fas fa-stop"></i> STOP STREAM
-                    </button>
-                </div>
-
-                <!-- Recording -->
-                <div class="panel-section">
-                    <div class="section-title">
-                        <i class="fas fa-record-vinyl"></i>
-                        <span>Local Recording</span>
-                    </div>
-                    <button class="btn btn-warning" onclick="startRecording()">
-                        <i class="fas fa-circle"></i> Start Recording
-                    </button>
-                    <button class="btn btn-secondary" onclick="stopRecording()">
-                        <i class="fas fa-square"></i> Stop & Download
-                    </button>
-                </div>
-            </div>
-        </div>
+    <div id="container">
+        <video id="videoPlayer" playsinline loop></video>
     </div>
-
-    <!-- YouTube Auth Modal -->
-    <div class="modal" id="youtubeAuthModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fab fa-youtube" style="color: #ff0000;"></i> Connect YouTube</h2>
-                <button class="close-btn" onclick="closeYouTubeModal()">&times;</button>
-            </div>
-            <p>To stream to YouTube, you need to:</p>
-            <ol style="margin: 20px 0; padding-left: 20px;">
-                <li>Have a YouTube channel</li>
-                <li>Enable live streaming (may take 24 hours for new channels)</li>
-                <li>Sign in with your Google account that has a YouTube channel</li>
-            </ol>
-            
-            <div style="text-align: center; margin: 20px 0;">
-                <button class="btn btn-youtube" onclick="authenticateYouTube()" style="width: auto; padding: 15px 30px;">
-                    <i class="fab fa-google"></i> Sign in with Google
-                </button>
-            </div>
-            
-            <hr style="margin: 20px 0;">
-            
-            <h3>How to get your Stream Key:</h3>
-            <div style="background: #f1f5f9; padding: 15px; border-radius: 10px; font-size: 14px; margin-top: 10px;">
-                <p>1. Go to <a href="https://studio.youtube.com" target="_blank">YouTube Studio</a><br>
-                2. Click "Create" → "Go Live"<br>
-                3. Select "Stream" tab<br>
-                4. Copy your stream key<br>
-                5. Use RTMP URL: rtmp://a.rtmp.youtube.com/live2</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
     
+    <div id="dropZone">
+        <p>🎬 Drop your video file here<br><br>⚠️ Video will play in fullscreen with no controls<br>Press ESC to exit (only way to stop)</p>
+    </div>
+
     <script>
-        // Your Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyA-lF7reFlMRnCQ2QHz0rsWP5Rr8xCV8w4",
-            authDomain: "rolive-1bcdf.firebaseapp.com",
-            projectId: "rolive-1bcdf",
-            storageBucket: "rolive-1bcdf.firebasestorage.app",
-            messagingSenderId: "824821646122",
-            appId: "1:824821646122:web:6bd01059b51190abba9453",
-            measurementId: "G-5G16BD21EX"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-
-        // ==================== STATE MANAGEMENT ====================
-        let mediaStream = null;
-        let audioStream = null;
-        let recordedChunks = [];
-        let mediaRecorder = null;
-        let overlayItems = [];
-        let selectedOverlayIndex = -1;
-        let isDragging = false;
-        let dragOffsetX, dragOffsetY;
-        let currentUser = null;
-        let youtubeUser = null; // Separate for YouTube
-        let youtubeStreamActive = false;
-        let animationFrame = null;
-        let streamBitrate = 0;
-        let lastBytesSent = 0;
-        let lastTime = Date.now();
-        let micEnabled = true;
-
-        // DOM Elements
-        const videoPreview = document.getElementById('videoPreview');
-        const overlayCanvas = document.getElementById('overlayCanvas');
-        const overlayEditor = document.getElementById('overlayEditor');
-        const layersList = document.getElementById('layersList');
-        const statusDot = document.getElementById('statusDot');
-        const streamStatus = document.getElementById('streamStatus');
-        const viewerCount = document.getElementById('viewerCount');
-        const streamHealth = document.getElementById('streamHealth');
-        const bitrateEl = document.getElementById('bitrate');
-        const authSection = document.getElementById('authSection');
-        const cameraBtn = document.getElementById('cameraBtn');
-        const screenBtn = document.getElementById('screenBtn');
-        const micBtn = document.getElementById('micBtn');
-        const stopBtn = document.getElementById('stopBtn');
-
-        // ==================== FIREBASE AUTH ====================
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                currentUser = user;
-                updateAuthUI(true);
-                console.log('Logged in as:', user.displayName);
-            } else {
-                currentUser = null;
-                updateAuthUI(false);
+        const videoPlayer = document.getElementById('videoPlayer');
+        const dropZone = document.getElementById('dropZone');
+        
+        // Disable all user interactions with video
+        videoPlayer.addEventListener('click', (e) => {
+            e.preventDefault();
+            return false;
+        });
+        
+        videoPlayer.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            return false;
+        });
+        
+        videoPlayer.addEventListener('keydown', (e) => {
+            e.preventDefault();
+            return false;
+        });
+        
+        videoPlayer.addEventListener('play', (e) => {
+            e.preventDefault();
+            // Force video to keep playing
+            videoPlayer.play();
+        });
+        
+        videoPlayer.addEventListener('pause', (e) => {
+            e.preventDefault();
+            // Immediately resume if paused
+            videoPlayer.play();
+        });
+        
+        // Prevent any keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Allow ESC to exit fullscreen (only way to stop)
+            if (e.key === 'Escape') {
+                return true;
+            }
+            
+            // Block spacebar (pause), arrow keys (seek), etc.
+            if (e.code === 'Space' || 
+                e.key === 'ArrowLeft' || 
+                e.key === 'ArrowRight' || 
+                e.key === 'ArrowUp' || 
+                e.key === 'ArrowDown' ||
+                e.key === 'f' ||  // fullscreen
+                e.key === 'F') {
+                e.preventDefault();
+                return false;
             }
         });
-
-        function updateAuthUI(isLoggedIn) {
-            if (isLoggedIn) {
-                authSection.innerHTML = `
-                    <div class="user-profile">
-                        <img src="${currentUser.photoURL || 'https://via.placeholder.com/40'}" class="user-avatar">
-                        <span class="user-name">${currentUser.displayName}</span>
-                        <button class="auth-btn btn-danger" onclick="handleLogout()">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </button>
-                    </div>
-                `;
+        
+        // Prevent mouse interactions
+        videoPlayer.style.pointerEvents = 'none';
+        
+        // Handle file drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            
+            const file = e.dataTransfer.files[0];
+            
+            if (file && file.type.startsWith('video/')) {
+                const videoUrl = URL.createObjectURL(file);
+                videoPlayer.src = videoUrl;
+                
+                // Hide drop zone
+                dropZone.classList.add('hidden');
+                
+                // Force fullscreen
+                const container = document.getElementById('container');
+                if (container.requestFullscreen) {
+                    container.requestFullscreen();
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                } else if (container.msRequestFullscreen) {
+                    container.msRequestFullscreen();
+                }
+                
+                // Start playing
+                videoPlayer.play().catch(err => {
+                    console.log('Autoplay failed:', err);
+                });
+                
+                // Force loop (optional - remove if you want it to stop at end)
+                videoPlayer.loop = true;
+                
+                // Clean up object URL when video is done
+                videoPlayer.addEventListener('ended', () => {
+                    URL.revokeObjectURL(videoUrl);
+                });
             } else {
-                authSection.innerHTML = `
-                    <button class="auth-btn btn-primary" onclick="handleGoogleLogin()">
-                        <i class="fab fa-google"></i> Login with Google
-                    </button>
-                `;
-            }
-        }
-
-        function handleGoogleLogin() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then((result) => {
-                    console.log('Login successful:', result.user.displayName);
-                })
-                .catch((error) => {
-                    console.error('Login error:', error);
-                    alert('Login failed: ' + error.message);
-                });
-        }
-
-        function handleLogout() {
-            auth.signOut()
-                .then(() => {
-                    console.log('Logged out');
-                })
-                .catch((error) => {
-                    console.error('Logout error:', error);
-                });
-        }
-
-        // ==================== YOUTUBE AUTH ====================
-        function signInToYouTube() {
-            document.getElementById('youtubeAuthModal').classList.add('active');
-        }
-
-        function closeYouTubeModal() {
-            document.getElementById('youtubeAuthModal').classList.remove('active');
-        }
-
-        function authenticateYouTube() {
-            // Simulate YouTube sign-in
-            // In production, this would use Google Identity Services for YouTube
-            
-            // For demo purposes, we'll simulate a successful sign-in
-            setTimeout(() => {
-                youtubeUser = {
-                    name: currentUser?.displayName || "YouTube Creator",
-                    email: currentUser?.email || "creator@gmail.com",
-                    channelName: "My Live Channel",
-                    avatar: currentUser?.photoURL || "https://via.placeholder.com/40"
-                };
-                
-                // Update UI
-                document.getElementById('youtubeSignInBtn').style.display = 'none';
-                document.getElementById('youtubeUserInfo').style.display = 'block';
-                document.getElementById('youtubeAvatar').src = youtubeUser.avatar;
-                document.getElementById('youtubeName').textContent = youtubeUser.name;
-                document.getElementById('youtubeChannel').textContent = youtubeUser.channelName;
-                
-                document.getElementById('youtubeStatusText').textContent = `Connected as ${youtubeUser.channelName}`;
-                document.getElementById('youtubeStatusText').className = 'youtube-connected';
-                
-                closeYouTubeModal();
-                alert('Successfully connected to YouTube!');
-            }, 1000);
-        }
-
-        function signOutYouTube() {
-            youtubeUser = null;
-            document.getElementById('youtubeSignInBtn').style.display = 'block';
-            document.getElementById('youtubeUserInfo').style.display = 'none';
-            document.getElementById('youtubeStatusText').textContent = 'Not connected to YouTube';
-            document.getElementById('youtubeStatusText').className = 'youtube-disconnected';
-        }
-
-        function toggleStreamKeyVisibility() {
-            const streamKeyInput = document.getElementById('streamKey');
-            const toggleIcon = document.getElementById('streamKeyToggle');
-            
-            if (streamKeyInput.type === 'password') {
-                streamKeyInput.type = 'text';
-                toggleIcon.className = 'fas fa-eye-slash';
-            } else {
-                streamKeyInput.type = 'password';
-                toggleIcon.className = 'fas fa-eye';
-            }
-        }
-
-        // ==================== CAMERA FUNCTIONS ====================
-        async function startCamera() {
-            try {
-                if (mediaStream) {
-                    // Stop existing tracks
-                    mediaStream.getTracks().forEach(track => track.stop());
-                }
-                
-                mediaStream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 },
-                        frameRate: { ideal: 30 }
-                    },
-                    audio: true
-                });
-                
-                videoPreview.srcObject = mediaStream;
-                updateStreamStatus(true);
-                startBitrateMonitoring();
-                
-                // Start canvas rendering
-                renderOverlaysToCanvas();
-                
-                // Update UI
-                cameraBtn.classList.add('active');
-                screenBtn.classList.remove('active');
-                
-            } catch (error) {
-                console.error('Camera error:', error);
-                alert('Failed to access camera: ' + error.message);
-            }
-        }
-
-        async function startScreenShare() {
-            try {
-                const screenStream = await navigator.mediaDevices.getDisplayMedia({
-                    video: {
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 },
-                        frameRate: { ideal: 30 }
-                    },
-                    audio: true
-                });
-                
-                if (mediaStream) {
-                    // Stop video tracks but keep audio
-                    const audioTracks = mediaStream.getAudioTracks();
-                    mediaStream.getVideoTracks().forEach(track => track.stop());
-                    
-                    // Create new stream with screen and existing audio
-                    mediaStream = new MediaStream([
-                        ...screenStream.getVideoTracks(),
-                        ...audioTracks,
-                        ...screenStream.getAudioTracks()
-                    ]);
-                } else {
-                    mediaStream = screenStream;
-                }
-                
-                videoPreview.srcObject = mediaStream;
-                updateStreamStatus(true);
-                startBitrateMonitoring();
-                
-                // Update UI
-                screenBtn.classList.add('active');
-                cameraBtn.classList.remove('active');
-                
-            } catch (error) {
-                console.error('Screen share error:', error);
-                alert('Failed to share screen: ' + error.message);
-            }
-        }
-
-        function toggleMicrophone() {
-            if (mediaStream) {
-                const audioTracks = mediaStream.getAudioTracks();
-                if (audioTracks.length > 0) {
-                    micEnabled = !audioTracks[0].enabled;
-                    audioTracks[0].enabled = micEnabled;
-                    updateMicrophoneIcon();
-                }
-            } else {
-                alert('Please start camera or screen share first');
-            }
-        }
-
-        function updateMicrophoneIcon() {
-            const micIcon = micBtn.querySelector('i');
-            if (micIcon) {
-                micIcon.className = micEnabled ? 'fas fa-microphone' : 'fas fa-microphone-slash';
-            }
-            micBtn.classList.toggle('active', micEnabled);
-        }
-
-        function stopCamera() {
-            if (mediaStream) {
-                mediaStream.getTracks().forEach(track => track.stop());
-                mediaStream = null;
-                videoPreview.srcObject = null;
-                updateStreamStatus(false);
-                
-                if (animationFrame) {
-                    cancelAnimationFrame(animationFrame);
-                }
-                
-                // Update UI
-                cameraBtn.classList.remove('active');
-                screenBtn.classList.remove('active');
-            }
-        }
-
-        // ==================== OVERLAY FUNCTIONS ====================
-        function addTextOverlay() {
-            const text = document.getElementById('overlayText').value;
-            if (!text) {
-                alert('Please enter text');
-                return;
-            }
-
-            const color = document.getElementById('textColor').value;
-            const fontSize = document.getElementById('fontSize').value;
-
-            const overlayItem = {
-                id: Date.now(),
-                type: 'text',
-                content: text,
-                style: {
-                    color: color,
-                    fontSize: fontSize + 'px',
-                    left: '50px',
-                    top: '50px',
-                    fontFamily: 'Inter, sans-serif',
-                    fontWeight: 'bold',
-                    textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
-                }
-            };
-
-            overlayItems.push(overlayItem);
-            renderOverlayEditors();
-            updateLayersList();
-        }
-
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            if (file.size > 5 * 1024 * 1024) {
-                alert('Image too large. Max 5MB');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    const overlayItem = {
-                        id: Date.now(),
-                        type: 'image',
-                        content: e.target.result,
-                        width: img.width,
-                        height: img.height,
-                        style: {
-                            width: Math.min(300, img.width) + 'px',
-                            left: '50px',
-                            top: '50px'
-                        }
-                    };
-
-                    overlayItems.push(overlayItem);
-                    renderOverlayEditors();
-                    updateLayersList();
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function renderOverlayEditors() {
-            overlayEditor.innerHTML = '';
-            
-            overlayItems.forEach((item, index) => {
-                const element = document.createElement('div');
-                element.className = `overlay-item ${index === selectedOverlayIndex ? 'selected' : ''}`;
-                element.style.left = item.style.left;
-                element.style.top = item.style.top;
-                element.dataset.index = index;
-                
-                if (item.type === 'text') {
-                    element.textContent = item.content;
-                    element.style.color = item.style.color;
-                    element.style.fontSize = item.style.fontSize;
-                    element.style.fontFamily = item.style.fontFamily;
-                    element.style.fontWeight = item.style.fontWeight;
-                    element.style.textShadow = item.style.textShadow;
-                } else {
-                    element.innerHTML = `<img src="${item.content}" style="width: ${item.style.width}">`;
-                }
-
-                // Add controls
-                const controls = document.createElement('div');
-                controls.className = 'overlay-controls';
-                controls.innerHTML = `
-                    <button onclick="deleteOverlay(${index})" style="background: #ef4444; color: white;"><i class="fas fa-trash"></i></button>
-                    <button onclick="bringToFront(${index})" style="background: #6366f1; color: white;"><i class="fas fa-arrow-up"></i></button>
-                    <button onclick="sendToBack(${index})" style="background: #6366f1; color: white;"><i class="fas fa-arrow-down"></i></button>
-                `;
-                element.appendChild(controls);
-
-                // Make draggable
-                element.addEventListener('mousedown', (e) => startDrag(e, index));
-                element.addEventListener('click', () => selectOverlay(index));
-
-                overlayEditor.appendChild(element);
-            });
-        }
-
-        function renderOverlaysToCanvas() {
-            if (!videoPreview.videoWidth || !overlayEditor.clientWidth) {
-                animationFrame = requestAnimationFrame(renderOverlaysToCanvas);
-                return;
-            }
-
-            // Set canvas size to match video
-            overlayCanvas.width = videoPreview.videoWidth;
-            overlayCanvas.height = videoPreview.videoHeight;
-
-            const ctx = overlayCanvas.getContext('2d');
-            ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-
-            // Calculate scaling factor
-            const scaleX = overlayCanvas.width / overlayEditor.clientWidth;
-            const scaleY = overlayCanvas.height / overlayEditor.clientHeight;
-
-            // Draw overlays
-            overlayItems.forEach(item => {
-                const left = parseInt(item.style.left) * scaleX;
-                const top = parseInt(item.style.top) * scaleY;
-
-                if (item.type === 'text') {
-                    ctx.font = `${item.style.fontWeight} ${parseInt(item.style.fontSize) * scaleX}px ${item.style.fontFamily}`;
-                    ctx.fillStyle = item.style.color;
-                    ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                    ctx.shadowBlur = 10 * scaleX;
-                    ctx.shadowOffsetX = 2 * scaleX;
-                    ctx.shadowOffsetY = 2 * scaleY;
-                    ctx.fillText(item.content, left, top + (parseInt(item.style.fontSize) * scaleY));
-                } else {
-                    const img = new Image();
-                    img.src = item.content;
-                    const width = parseInt(item.style.width) * scaleX;
-                    const height = (item.height / item.width) * width;
-                    ctx.drawImage(img, left, top, width, height);
-                }
-            });
-
-            animationFrame = requestAnimationFrame(renderOverlaysToCanvas);
-        }
-
-        function startDrag(e, index) {
-            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'I') return;
-            
-            isDragging = true;
-            selectOverlay(index);
-            
-            const element = e.currentTarget;
-            const rect = element.getBoundingClientRect();
-            const containerRect = overlayEditor.getBoundingClientRect();
-            
-            dragOffsetX = e.clientX - rect.left;
-            dragOffsetY = e.clientY - rect.top;
-            
-            element.style.cursor = 'grabbing';
-            element.style.zIndex = '1000';
-            
-            function onDrag(e) {
-                if (!isDragging) return;
-                
-                const left = e.clientX - containerRect.left - dragOffsetX;
-                const top = e.clientY - containerRect.top - dragOffsetY;
-                
-                const maxLeft = containerRect.width - rect.width;
-                const maxTop = containerRect.height - rect.height;
-                
-                element.style.left = Math.max(0, Math.min(maxLeft, left)) + 'px';
-                element.style.top = Math.max(0, Math.min(maxTop, top)) + 'px';
-                
-                // Update item position
-                overlayItems[index].style.left = element.style.left;
-                overlayItems[index].style.top = element.style.top;
-            }
-            
-            function stopDrag() {
-                isDragging = false;
-                element.style.cursor = 'move';
-                element.style.zIndex = '';
-                document.removeEventListener('mousemove', onDrag);
-                document.removeEventListener('mouseup', stopDrag);
-            }
-            
-            document.addEventListener('mousemove', onDrag);
-            document.addEventListener('mouseup', stopDrag);
-        }
-
-        function selectOverlay(index) {
-            selectedOverlayIndex = index;
-            renderOverlayEditors();
-        }
-
-        function deleteOverlay(index) {
-            overlayItems.splice(index, 1);
-            if (selectedOverlayIndex === index) {
-                selectedOverlayIndex = -1;
-            } else if (selectedOverlayIndex > index) {
-                selectedOverlayIndex--;
-            }
-            renderOverlayEditors();
-            updateLayersList();
-        }
-
-        function bringToFront(index) {
-            const item = overlayItems.splice(index, 1)[0];
-            overlayItems.push(item);
-            selectedOverlayIndex = overlayItems.length - 1;
-            renderOverlayEditors();
-            updateLayersList();
-        }
-
-        function sendToBack(index) {
-            const item = overlayItems.splice(index, 1)[0];
-            overlayItems.unshift(item);
-            selectedOverlayIndex = 0;
-            renderOverlayEditors();
-            updateLayersList();
-        }
-
-        function clearAllOverlays() {
-            overlayItems = [];
-            selectedOverlayIndex = -1;
-            renderOverlayEditors();
-            updateLayersList();
-        }
-
-        function updateLayersList() {
-            layersList.innerHTML = '';
-            overlayItems.forEach((item, index) => {
-                const element = document.createElement('div');
-                element.className = 'layer-item';
-                element.innerHTML = `
-                    <span><i class="fas ${item.type === 'text' ? 'fa-font' : 'fa-image'}"></i> Layer ${index + 1}</span>
-                    <div class="layer-controls">
-                        <button onclick="bringToFront(${index})"><i class="fas fa-arrow-up"></i></button>
-                        <button onclick="sendToBack(${index})"><i class="fas fa-arrow-down"></i></button>
-                        <button onclick="deleteOverlay(${index})" style="color: #ef4444;"><i class="fas fa-times"></i></button>
-                    </div>
-                `;
-                layersList.appendChild(element);
-            });
-        }
-
-        // ==================== YOUTUBE STREAMING ====================
-        function startYouTubeStream() {
-            if (!currentUser) {
-                alert('Please login with Google first');
-                return;
-            }
-
-            if (!youtubeUser) {
-                alert('Please sign in to YouTube first');
-                signInToYouTube();
-                return;
-            }
-
-            const rtmpUrl = document.getElementById('rtmpUrl').value;
-            const streamKey = document.getElementById('streamKey').value;
-
-            if (!rtmpUrl || !streamKey) {
-                alert('Please enter both RTMP URL and Stream Key');
-                return;
-            }
-
-            if (!mediaStream) {
-                alert('Please start your camera or screen share first');
-                return;
-            }
-
-            // In a real implementation, you would use a WebRTC to RTMP service
-            // For demo purposes, we'll simulate the stream
-            youtubeStreamActive = true;
-            
-            document.getElementById('youtubeStartBtn').style.display = 'none';
-            document.getElementById('youtubeStopBtn').style.display = 'block';
-            
-            streamStatus.textContent = 'Live on YouTube';
-            statusDot.classList.add('youtube');
-            
-            // Simulate viewer count
-            let viewers = 0;
-            const viewerInterval = setInterval(() => {
-                if (!youtubeStreamActive) {
-                    clearInterval(viewerInterval);
-                    return;
-                }
-                viewers = Math.floor(Math.random() * 50) + 10;
-                viewerCount.textContent = `${viewers} viewers`;
-            }, 5000);
-
-            alert(`✅ Stream started to YouTube!\n\nRTMP: ${rtmpUrl}\nStream Key: ${streamKey.slice(0,4)}...${streamKey.slice(-4)}`);
-        }
-
-        function stopYouTubeStream() {
-            youtubeStreamActive = false;
-            
-            document.getElementById('youtubeStartBtn').style.display = 'block';
-            document.getElementById('youtubeStopBtn').style.display = 'none';
-            
-            streamStatus.textContent = mediaStream ? 'Camera Active' : 'Offline';
-            statusDot.classList.remove('youtube');
-            if (mediaStream) {
-                statusDot.classList.add('live');
-            }
-            viewerCount.textContent = '0 viewers';
-            
-            alert('YouTube stream stopped');
-        }
-
-        // ==================== RECORDING FUNCTIONS ====================
-        function startRecording() {
-            if (!mediaStream) {
-                alert('Please start camera or screen share first');
-                return;
-            }
-
-            recordedChunks = [];
-            
-            // Create a composite stream with overlays
-            const canvasStream = overlayCanvas.captureStream(30);
-            const audioTracks = mediaStream.getAudioTracks();
-            
-            if (audioTracks.length > 0) {
-                canvasStream.addTrack(audioTracks[0]);
-            }
-            
-            try {
-                mediaRecorder = new MediaRecorder(canvasStream, {
-                    mimeType: 'video/webm;codecs=vp9,opus',
-                    videoBitsPerSecond: 2500000
-                });
-                
-                mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        recordedChunks.push(event.data);
-                    }
-                };
-                
-                mediaRecorder.onstop = () => {
-                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `rolive-recording-${new Date().toISOString()}.webm`;
-                    a.click();
-                };
-                
-                mediaRecorder.start(1000); // Collect data every second
-                alert('Recording started');
-                
-            } catch (error) {
-                console.error('Recording error:', error);
-                alert('Failed to start recording: ' + error.message);
-            }
-        }
-
-        function stopRecording() {
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-                alert('Recording stopped - download starting');
-            }
-        }
-
-        // ==================== STREAM MONITORING ====================
-        function startBitrateMonitoring() {
-            setInterval(() => {
-                if (mediaStream && youtubeStreamActive) {
-                    // Simulate bitrate calculation
-                    streamBitrate = Math.floor(Math.random() * 2000) + 3000;
-                    bitrateEl.textContent = `${streamBitrate} Kbps`;
-                    
-                    // Simulate stream health
-                    const health = streamBitrate > 4000 ? 'Excellent' : streamBitrate > 2000 ? 'Good' : 'Fair';
-                    streamHealth.textContent = health;
-                }
-            }, 2000);
-        }
-
-        function updateStreamStatus(isLive) {
-            if (isLive) {
-                if (!youtubeStreamActive) {
-                    statusDot.classList.add('live');
-                    streamStatus.textContent = 'Camera Active';
-                }
-            } else {
-                statusDot.classList.remove('live');
-                statusDot.classList.remove('youtube');
-                streamStatus.textContent = 'Offline';
-                bitrateEl.textContent = '0 Kbps';
-                streamHealth.textContent = 'N/A';
-            }
-        }
-
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('ROLive Studio Ready');
-            console.log('Firebase Connected:', firebase.app().name);
-            
-            // Initialize overlay canvas
-            if (videoPreview) {
-                videoPreview.addEventListener('loadedmetadata', () => {
-                    renderOverlaysToCanvas();
-                });
+                alert('Please drop a valid video file');
             }
         });
-
-        // Clean up on page unload
-        window.addEventListener('beforeunload', () => {
-            if (mediaStream) {
-                mediaStream.getTracks().forEach(track => track.stop());
+        
+        // Handle fullscreen change
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                // If exited fullscreen, show drop zone again
+                dropZone.classList.remove('hidden');
+                videoPlayer.pause();
+                videoPlayer.src = '';
             }
         });
+        
+        document.addEventListener('webkitfullscreenchange', () => {
+            if (!document.webkitFullscreenElement) {
+                dropZone.classList.remove('hidden');
+                videoPlayer.pause();
+                videoPlayer.src = '';
+            }
+        });
+        
+        // Prevent right-click context menu on entire page
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            return false;
+        });
+        
+        console.log('Ready - drop a video file to start forced fullscreen playback');
     </script>
 </body>
 </html>
