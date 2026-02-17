@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forced Fullscreen Video</title>
+    <title>Forced Fullscreen Video - Seamless Loop</title>
     <style>
         * {
             margin: 0;
@@ -29,7 +29,7 @@
         #videoPlayer {
             width: 100%;
             height: 100%;
-            object-fit: contain; /* Maintains aspect ratio */
+            object-fit: contain;
             background: black;
         }
         
@@ -114,8 +114,8 @@
             position: fixed;
             bottom: 10px;
             right: 10px;
-            color: rgba(255, 255, 255, 0.3);
-            font-size: 12px;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 11px;
             z-index: 100;
             pointer-events: none;
         }
@@ -142,8 +142,18 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            color: rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.3);
             font-size: 12px;
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        .loop-indicator {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 11px;
             z-index: 100;
             pointer-events: none;
         }
@@ -157,7 +167,7 @@
     <div id="overlay">
         <div class="file-input-container">
             <h2>🎬 Select Video File</h2>
-            <p>Choose a video file from your device<br>Video will play in fullscreen with no controls</p>
+            <p>Choose a video file from your device<br>Video will play in fullscreen with seamless looping</p>
             
             <label for="fileInput" class="file-input-label">
                 📁 Browse Files
@@ -183,6 +193,10 @@
     <div class="video-info hidden" id="videoInfo">
         <span id="resolution"></span>
     </div>
+    
+    <div class="loop-indicator hidden" id="loopIndicator">
+        ↻ seamless loop
+    </div>
 
     <script>
         const videoPlayer = document.getElementById('videoPlayer');
@@ -193,6 +207,11 @@
         const exitNote = document.getElementById('exitNote');
         const videoInfo = document.getElementById('videoInfo');
         const resolution = document.getElementById('resolution');
+        const loopIndicator = document.getElementById('loopIndicator');
+        
+        // Variables for seamless looping
+        let isSeamlessLoopEnabled = true;
+        let loopFrame = null;
         
         // Disable all user interactions with video
         function disableVideoInteractions() {
@@ -243,6 +262,59 @@
             });
         }
         
+        // Setup seamless looping
+        function setupSeamlessLoop() {
+            if (!isSeamlessLoopEnabled) return;
+            
+            // Use timeupdate for smoother loop detection
+            videoPlayer.addEventListener('timeupdate', function() {
+                const video = this;
+                
+                // If we're near the end (within 0.1 seconds), prepare to loop
+                if (video.duration - video.currentTime < 0.1) {
+                    // Cancel any existing frame
+                    if (loopFrame) {
+                        cancelAnimationFrame(loopFrame);
+                    }
+                    
+                    // Use requestAnimationFrame for perfect timing
+                    function checkAndLoop() {
+                        if (video.currentTime >= video.duration - 0.01) {
+                            // Instantly jump to beginning
+                            video.currentTime = 0;
+                            
+                            // Ensure playback continues
+                            if (video.paused) {
+                                video.play();
+                            }
+                        } else {
+                            // Check again next frame
+                            loopFrame = requestAnimationFrame(checkAndLoop);
+                        }
+                    }
+                    
+                    loopFrame = requestAnimationFrame(checkAndLoop);
+                }
+            });
+            
+            // Backup: handle ended event
+            videoPlayer.addEventListener('ended', function(e) {
+                e.preventDefault();
+                this.currentTime = 0;
+                this.play().catch(() => {});
+            });
+            
+            // Additional backup: use seeking to catch any edge cases
+            videoPlayer.addEventListener('seeked', function() {
+                // If we somehow ended up at the end, reset to beginning
+                if (this.currentTime >= this.duration - 0.01) {
+                    this.currentTime = 0;
+                }
+            });
+            
+            console.log('Seamless looping enabled');
+        }
+        
         // Block keyboard shortcuts (except ESC)
         document.addEventListener('keydown', (e) => {
             // Allow ESC to exit fullscreen
@@ -252,16 +324,16 @@
             
             // Block all media keys and common shortcuts
             const blockedKeys = [
-                ' ', 'Space', // Spacebar for play/pause
-                'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', // Seeking
-                'f', 'F', // Fullscreen
-                'k', 'K', // YouTube play/pause
-                'm', 'M', // Mute
-                'p', 'P', // Play
-                '[', ']', // Speed changes
-                '<', '>', // Frame advance
-                'Home', 'End', // Seek to start/end
-                'PageUp', 'PageDown' // Chapter navigation
+                ' ', 'Space',
+                'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+                'f', 'F',
+                'k', 'K',
+                'm', 'M',
+                'p', 'P',
+                '[', ']',
+                '<', '>',
+                'Home', 'End',
+                'PageUp', 'PageDown'
             ];
             
             if (blockedKeys.includes(e.key) || blockedKeys.includes(e.code)) {
@@ -276,7 +348,7 @@
                 e.stopPropagation();
                 return false;
             }
-        }, true); // Use capture to ensure we get the event first
+        }, true);
         
         // Prevent right-click everywhere
         document.addEventListener('contextmenu', (e) => {
@@ -311,6 +383,7 @@
                     // Show exit note and video info
                     exitNote.classList.remove('hidden');
                     videoInfo.classList.remove('hidden');
+                    loopIndicator.classList.remove('hidden');
                     
                     // Force fullscreen
                     const container = document.getElementById('container');
@@ -322,6 +395,9 @@
                         container.msRequestFullscreen();
                     }
                     
+                    // Setup seamless looping
+                    setupSeamlessLoop();
+                    
                     // Start playing
                     videoPlayer.play()
                         .then(() => {
@@ -331,7 +407,6 @@
                             console.log('Autoplay failed:', err);
                             loadingIndicator.classList.remove('show');
                             alert('Click OK to play video');
-                            // Try playing again with user interaction
                             videoPlayer.play();
                         });
                 };
@@ -340,12 +415,6 @@
                 videoPlayer.onerror = () => {
                     loadingIndicator.classList.remove('show');
                     alert('Error loading video. Please try another file.');
-                };
-                
-                // Clean up object URL when video is done
-                videoPlayer.onended = () => {
-                    // Loop the video (optional - remove if you don't want looping)
-                    videoPlayer.play();
                 };
                 
                 // Apply disabled interactions
@@ -359,10 +428,17 @@
         
         function handleFullscreenChange() {
             if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                // Cancel any animation frames
+                if (loopFrame) {
+                    cancelAnimationFrame(loopFrame);
+                    loopFrame = null;
+                }
+                
                 // If exited fullscreen, show overlay again
                 overlay.classList.remove('hidden');
                 exitNote.classList.add('hidden');
                 videoInfo.classList.add('hidden');
+                loopIndicator.classList.add('hidden');
                 
                 // Pause and clear video
                 videoPlayer.pause();
@@ -380,19 +456,30 @@
             }
         }
         
-        // Prevent drag and drop on window (to avoid browser default behavior)
+        // Prevent drag and drop on window
         document.addEventListener('dragover', (e) => e.preventDefault());
         document.addEventListener('drop', (e) => e.preventDefault());
         
-        // Handle visibility change (if user switches tabs)
+        // Handle visibility change
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && videoPlayer.src && (document.fullscreenElement || document.webkitFullscreenElement)) {
-                // Ensure video keeps playing when returning to tab
                 videoPlayer.play();
             }
         });
         
-        console.log('Ready - select a video file to start forced fullscreen playback');
+        // Extra seamless loop protection: use MutationObserver to detect any attribute changes
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'loop') {
+                    // Force remove loop attribute (we handle it manually)
+                    videoPlayer.removeAttribute('loop');
+                }
+            });
+        });
+        
+        observer.observe(videoPlayer, { attributes: true });
+        
+        console.log('Ready - select a video file to start forced fullscreen playback with seamless looping');
     </script>
 </body>
 </html>
