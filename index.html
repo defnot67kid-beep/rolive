@@ -210,8 +210,9 @@
         const loopIndicator = document.getElementById('loopIndicator');
         
         // Variables for seamless looping
-        let isSeamlessLoopEnabled = true;
-        let loopFrame = null;
+        let isLooping = false;
+        let loopCheckInterval = null;
+        let lastTime = 0;
         
         // Disable all user interactions with video
         function disableVideoInteractions() {
@@ -239,76 +240,83 @@
                 return false;
             });
             
-            // Force play if any pause attempt
+            // Force play if any pause attempt - FIXED: Don't interfere with natural playback
             videoPlayer.addEventListener('pause', (e) => {
                 e.preventDefault();
-                if (videoPlayer.src && !videoPlayer.ended) {
+                // Only resume if we're not at the end and it wasn't intentional
+                if (videoPlayer.src && !videoPlayer.ended && videoPlayer.currentTime < videoPlayer.duration - 0.5) {
                     videoPlayer.play().catch(() => {});
-                }
-            });
-            
-            // Handle seeking attempts
-            videoPlayer.addEventListener('seeking', (e) => {
-                e.preventDefault();
-                // Reset to current time if seeking attempted
-                if (videoPlayer.currentTime !== videoPlayer._lastTime) {
-                    videoPlayer.currentTime = videoPlayer._lastTime || 0;
                 }
             });
             
             // Track current time
             videoPlayer.addEventListener('timeupdate', () => {
-                videoPlayer._lastTime = videoPlayer.currentTime;
+                lastTime = videoPlayer.currentTime;
             });
         }
         
-        // Setup seamless looping
+        // Setup seamless looping - FIXED: No more sound overlay or stopping
         function setupSeamlessLoop() {
-            if (!isSeamlessLoopEnabled) return;
+            // Clear any existing interval
+            if (loopCheckInterval) {
+                clearInterval(loopCheckInterval);
+            }
             
-            // Use timeupdate for smoother loop detection
-            videoPlayer.addEventListener('timeupdate', function() {
-                const video = this;
+            // Use a single interval for loop checking
+            loopCheckInterval = setInterval(() => {
+                if (!videoPlayer.src || videoPlayer.ended || !document.fullscreenElement) return;
                 
-                // If we're near the end (within 0.1 seconds), prepare to loop
-                if (video.duration - video.currentTime < 0.1) {
-                    // Cancel any existing frame
-                    if (loopFrame) {
-                        cancelAnimationFrame(loopFrame);
-                    }
+                const currentTime = videoPlayer.currentTime;
+                const duration = videoPlayer.duration;
+                
+                // If we're at the end or very close, loop
+                if (duration > 0 && currentTime >= duration - 0.05) {
+                    // Set time to beginning
+                    videoPlayer.currentTime = 0;
                     
-                    // Use requestAnimationFrame for perfect timing
-                    function checkAndLoop() {
-                        if (video.currentTime >= video.duration - 0.01) {
-                            // Instantly jump to beginning
-                            video.currentTime = 0;
-                            
-                            // Ensure playback continues
-                            if (video.paused) {
-                                video.play();
-                            }
-                        } else {
-                            // Check again next frame
-                            loopFrame = requestAnimationFrame(checkAndLoop);
-                        }
+                    // Ensure it's playing
+                    if (videoPlayer.paused) {
+                        videoPlayer.play().catch(() => {});
                     }
-                    
-                    loopFrame = requestAnimationFrame(checkAndLoop);
                 }
-            });
+                
+                // FIXED: Detect if video stopped playing but shouldn't have
+                if (videoPlayer.paused && !videoPlayer.ended && duration > 0 && currentTime < duration - 0.5) {
+                    videoPlayer.play().catch(() => {});
+                }
+                
+                // FIXED: Detect if video is stuck (same time for too long)
+                if (lastTime === currentTime && !videoPlayer.paused && duration > 0 && currentTime < duration - 0.5) {
+                    // Force a small seek to unstuck if needed
+                    if (currentTime > 0) {
+                        videoPlayer.currentTime = currentTime - 0.01;
+                        videoPlayer.currentTime = currentTime;
+                    }
+                }
+                
+            }, 100); // Check every 100ms (smooth but not too heavy)
             
-            // Backup: handle ended event
+            // Handle ended event
             videoPlayer.addEventListener('ended', function(e) {
                 e.preventDefault();
                 this.currentTime = 0;
                 this.play().catch(() => {});
             });
             
-            // Additional backup: use seeking to catch any edge cases
-            videoPlayer.addEventListener('seeked', function() {
-                // If we somehow ended up at the end, reset to beginning
-                if (this.currentTime >= this.duration - 0.01) {
-                    this.currentTime = 0;
+            // FIXED: Handle waiting/stalled events
+            videoPlayer.addEventListener('waiting', () => {
+                // Brief pause then resume if stuck
+                setTimeout(() => {
+                    if (videoPlayer.paused && videoPlayer.src) {
+                        videoPlayer.play().catch(() => {});
+                    }
+                }, 500);
+            });
+            
+            videoPlayer.addEventListener('stalled', () => {
+                // Try to recover from stall
+                if (videoPlayer.src) {
+                    videoPlayer.play().catch(() => {});
                 }
             });
             
@@ -322,18 +330,13 @@
                 return true;
             }
             
-            // Block all media keys and common shortcuts
+            // Block all media keys
             const blockedKeys = [
                 ' ', 'Space',
                 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
                 'f', 'F',
                 'k', 'K',
-                'm', 'M',
-                'p', 'P',
-                '[', ']',
-                '<', '>',
-                'Home', 'End',
-                'PageUp', 'PageDown'
+                'm', 'M'
             ];
             
             if (blockedKeys.includes(e.key) || blockedKeys.includes(e.code)) {
@@ -342,7 +345,7 @@
                 return false;
             }
             
-            // Block any key when video is playing (except ESC)
+            // Block any key when video is playing
             if (document.fullscreenElement || document.webkitFullscreenElement) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -372,6 +375,7 @@
                 
                 // Set video source
                 videoPlayer.src = videoUrl;
+                videoPlayer.load();
                 
                 // Get video dimensions when metadata is loaded
                 videoPlayer.onloadedmetadata = () => {
@@ -398,21 +402,32 @@
                     // Setup seamless looping
                     setupSeamlessLoop();
                     
-                    // Start playing
-                    videoPlayer.play()
-                        .then(() => {
-                            loadingIndicator.classList.remove('show');
-                        })
-                        .catch(err => {
-                            console.log('Autoplay failed:', err);
-                            loadingIndicator.classList.remove('show');
-                            alert('Click OK to play video');
-                            videoPlayer.play();
-                        });
+                    // Start playing with a slight delay to ensure fullscreen
+                    setTimeout(() => {
+                        videoPlayer.play()
+                            .then(() => {
+                                loadingIndicator.classList.remove('show');
+                                console.log('Video playing successfully');
+                            })
+                            .catch(err => {
+                                console.log('Play failed:', err);
+                                loadingIndicator.classList.remove('show');
+                                
+                                // Try playing with user interaction
+                                const playPromise = videoPlayer.play();
+                                if (playPromise !== undefined) {
+                                    playPromise.catch(() => {
+                                        // Auto-play was prevented, but we're in fullscreen so it should work
+                                        setTimeout(() => videoPlayer.play(), 100);
+                                    });
+                                }
+                            });
+                    }, 500);
                 };
                 
                 // Handle video errors
-                videoPlayer.onerror = () => {
+                videoPlayer.onerror = (err) => {
+                    console.error('Video error:', err);
                     loadingIndicator.classList.remove('show');
                     alert('Error loading video. Please try another file.');
                 };
@@ -428,10 +443,10 @@
         
         function handleFullscreenChange() {
             if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                // Cancel any animation frames
-                if (loopFrame) {
-                    cancelAnimationFrame(loopFrame);
-                    loopFrame = null;
+                // Clear interval
+                if (loopCheckInterval) {
+                    clearInterval(loopCheckInterval);
+                    loopCheckInterval = null;
                 }
                 
                 // If exited fullscreen, show overlay again
@@ -450,9 +465,7 @@
                 selectedFileInfo.textContent = '';
                 
                 // Clean up object URL
-                if (videoPlayer.src) {
-                    URL.revokeObjectURL(videoPlayer.src);
-                }
+                URL.revokeObjectURL(videoPlayer.src);
             }
         }
         
@@ -463,21 +476,14 @@
         // Handle visibility change
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && videoPlayer.src && (document.fullscreenElement || document.webkitFullscreenElement)) {
-                videoPlayer.play();
+                if (videoPlayer.paused) {
+                    videoPlayer.play().catch(() => {});
+                }
             }
         });
         
-        // Extra seamless loop protection: use MutationObserver to detect any attribute changes
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.attributeName === 'loop') {
-                    // Force remove loop attribute (we handle it manually)
-                    videoPlayer.removeAttribute('loop');
-                }
-            });
-        });
-        
-        observer.observe(videoPlayer, { attributes: true });
+        // FIXED: Remove any existing event listeners that might cause issues
+        videoPlayer.removeAttribute('loop');
         
         console.log('Ready - select a video file to start forced fullscreen playback with seamless looping');
     </script>
