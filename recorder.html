@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>9:16 recorder · 5 sec timer</title>
+    <title>9:16 recorder · 5 sec preparation</title>
     <style>
         * {
             box-sizing: border-box;
@@ -25,7 +25,6 @@
             box-shadow: 0 25px 40px -10px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,215,0,0.15);
             width: 680px;
             max-width: 94vw;
-            transition: all 0.2s;
         }
         h1 {
             color: #f3e9c0;
@@ -71,7 +70,7 @@
             height: 100%;
             object-fit: cover;
             background: #171b24;
-            transform: scaleX(-1);
+            transform: scaleX(-1); /* mirror for natural preview */
             display: block;
             pointer-events: none;
         }
@@ -88,8 +87,9 @@
             border: 1px solid #b58f3a;
             font-weight: 500;
             letter-spacing: 0.3px;
+            z-index: 5;
         }
-        /* timer overlay inside preview */
+        /* countdown overlay – appears on top of live preview */
         .countdown-overlay {
             position: absolute;
             top: 0;
@@ -99,16 +99,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(3px);
             color: white;
-            font-size: 6rem;
-            font-weight: 800;
-            text-shadow: 0 0 20px gold;
-            z-index: 10;
+            font-size: 7rem;
+            font-weight: 900;
+            text-shadow: 0 0 30px #ffb347, 0 0 10px black;
+            z-index: 20;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.2s;
+            transition: opacity 0.2s ease;
             border-radius: 2rem;
         }
         .countdown-overlay.visible {
@@ -186,10 +186,6 @@
             font-family: monospace;
             font-size: 0.9rem;
         }
-        a#downloadLink {
-            color: white;
-            text-decoration: none;
-        }
         .footnote {
             margin-top: 1.2rem;
             font-size: 0.8rem;
@@ -200,18 +196,18 @@
 </head>
 <body>
     <div class="card">
-        <h1>⏱️ 9:16 Recorder <span>5s timer</span></h1>
-        <div class="sub">▼ countdown before recording · auto‑scaled to shorts</div>
+        <h1>🎬 9:16 Recorder <span>5s prep</span></h1>
+        <div class="sub">▼ start sharing → 5‑second countdown → recording begins</div>
 
-        <!-- 9:16 preview with countdown overlay -->
+        <!-- preview with countdown overlay -->
         <div class="preview-container">
             <video id="preview" autoplay playsinline muted></video>
             <div class="countdown-overlay" id="countdownOverlay">5</div>
-            <div class="preview-label">9:16 crop preview</div>
+            <div class="preview-label">9:16 live · countdown then record</div>
         </div>
 
         <div class="controls">
-            <button class="record-btn" id="startBtn">🔴 Start (5s timer)</button>
+            <button class="record-btn" id="startBtn">🔴 Start screen share</button>
             <button class="stop-btn" id="stopBtn" disabled>⏹️ Stop</button>
             <button class="download-btn" id="downloadBtn" disabled>💾 Download short</button>
         </div>
@@ -222,7 +218,7 @@
             <span>⚡ auto 9:16</span>
         </div>
         <div class="footnote">
-            ⬇️ 5‑second countdown · video scaled to 1080x1920 with original audio
+            ⬇️ after countdown, recording starts — output is 1080x1920 with audio
         </div>
     </div>
 
@@ -237,19 +233,20 @@
             const statusSpan = document.getElementById('status');
             const countdownOverlay = document.getElementById('countdownOverlay');
 
-            // recorder state
-            let mediaStream = null;
+            // state
+            let mediaStream = null;            // raw stream from display (+ mic)
             let mediaRecorder = null;
             let recordedChunks = [];
             let startTime = 0;
             let timerInterval = null;
 
-            // countdown state
+            // countdown related
             let countdownInterval = null;
             let countdownValue = 5;
-            let isCountingDown = false;
+            let isCountdownActive = false;
+            let countdownFinished = false;      // becomes true when countdown reaches 0
 
-            // === helper: format time mm:ss ===
+            // helper: format mm:ss
             function formatTime(seconds) {
                 const m = Math.floor(seconds / 60);
                 const s = Math.floor(seconds % 60);
@@ -277,7 +274,7 @@
                 startTime = 0;
             }
 
-            // === enable/disable UI (recording state) ===
+            // UI update for recording state
             function setUiForRecording(recording) {
                 if (recording) {
                     startBtn.disabled = true;
@@ -292,7 +289,7 @@
                 }
             }
 
-            // === clean up media stream ===
+            // stop all tracks and clean up
             function stopAllTracks() {
                 if (mediaStream) {
                     mediaStream.getTracks().forEach(track => track.stop());
@@ -301,81 +298,51 @@
                 previewVideo.srcObject = null;
             }
 
-            // === stop countdown (cleanup) ===
+            // clear countdown timer and hide overlay
             function stopCountdown() {
                 if (countdownInterval) {
                     clearInterval(countdownInterval);
                     countdownInterval = null;
                 }
                 countdownOverlay.classList.remove('visible');
-                isCountingDown = false;
+                isCountdownActive = false;
             }
 
-            // === START COUNTDOWN (initiates recording after delay) ===
-            function startCountdown() {
-                if (isCountingDown) return;
-                // clear any previous recorded chunks & disable download
+            // START THE PROCESS: ask for screen, show preview, then begin countdown
+            async function startScreenAndCountdown() {
+                // reset previous recording data
                 recordedChunks = [];
                 downloadBtn.disabled = true;
-                stopCountdown(); // just in case
+                stopAllTracks();               // kill old stream if any
+                stopCountdown();                // just in case
 
-                countdownValue = 5;
-                countdownOverlay.textContent = countdownValue;
-                countdownOverlay.classList.add('visible');
-                isCountingDown = true;
-                statusSpan.innerHTML = '⏳ get ready...';
-
-                // disable start button during countdown (re‑enable if aborted? but we block stop)
-                startBtn.disabled = true;
-                stopBtn.disabled = false;   // allow abort during countdown
-                // stop button text is "stop" – will cancel countdown and not start recording
-
-                countdownInterval = setInterval(() => {
-                    countdownValue -= 1;
-                    countdownOverlay.textContent = countdownValue;
-
-                    if (countdownValue <= 0) {
-                        stopCountdown();          // hide overlay, clear interval
-                        // actually begin recording
-                        beginRecordingAfterCountdown();
-                    }
-                }, 1000);
-            }
-
-            // === called when countdown finishes ===
-            async function beginRecordingAfterCountdown() {
-                // ensure we are not in countdown mode
-                stopCountdown();
-                // but we might have been aborted by stop button – check flag
-                if (!mediaStream) { 
-                    // if no stream acquired yet, we need to get it now.
-                    // we must acquire display stream inside this function.
-                }
                 try {
-                    // get screen with audio
+                    // 1. immediately ask for screen + audio (system audio optional)
                     const displayStream = await navigator.mediaDevices.getDisplayMedia({
                         video: true,
                         audio: true,
                     });
 
-                    // optional mic
+                    // 2. optionally request microphone
                     let micStream = null;
                     try {
                         micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     } catch (e) {
-                        console.warn('No mic, continuing');
+                        console.log('No microphone, continuing without mic');
                     }
 
+                    // 3. combine audio tracks (system + mic)
                     const audioTracks = [];
                     displayStream.getAudioTracks().forEach(t => audioTracks.push(t));
                     if (micStream) {
                         micStream.getAudioTracks().forEach(t => audioTracks.push(t));
                     }
 
-                    let finalStream;
                     const videoTrack = displayStream.getVideoTracks()[0];
                     if (!videoTrack) throw new Error('No video track');
-                    
+
+                    // 4. create final mediaStream
+                    let finalStream;
                     if (audioTracks.length) {
                         finalStream = new MediaStream([videoTrack, ...audioTracks]);
                     } else {
@@ -383,70 +350,109 @@
                     }
 
                     mediaStream = finalStream;
-                    previewVideo.srcObject = mediaStream;
+                    previewVideo.srcObject = mediaStream;   // live preview starts
 
-                    // set up recorder
-                    mediaRecorder = new MediaRecorder(mediaStream, {
-                        mimeType: 'video/webm;codecs=vp8,opus',
-                        videoBitsPerSecond: 4000000,
-                    });
-
-                    mediaRecorder.ondataavailable = (e) => {
-                        if (e.data.size > 0) recordedChunks.push(e.data);
-                    };
-
-                    mediaRecorder.onstop = () => {
-                        stopTimer();
-                        setUiForRecording(false);
-                        // don't stop tracks – keep preview
-                    };
-
-                    mediaRecorder.start();
-                    startTimer();
-                    setUiForRecording(true);
-
-                    // if user stops sharing via browser UI
-                    displayStream.getVideoTracks()[0].onended = () => {
+                    // 5. when user stops sharing via browser button, clean up
+                    videoTrack.onended = () => {
+                        // if recording is active, stop recorder
                         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                             mediaRecorder.stop();
-                            stopAllTracks();
-                            setUiForRecording(false);
-                            stopCountdown();
                         }
+                        stopAllTracks();
+                        stopCountdown();
+                        setUiForRecording(false);
+                        statusSpan.innerHTML = '⏹️ sharing stopped';
                     };
 
+                    // 6. now start the 5‑second countdown (preparation period)
+                    startCountdown();
+
                 } catch (err) {
-                    console.error('Recording failed:', err);
-                    statusSpan.innerHTML = '⚠️ error / denied';
+                    console.error('Screen capture error:', err);
+                    statusSpan.innerHTML = '⚠️ sharing cancelled/denied';
+                    setUiForRecording(false);
+                }
+            }
+
+            // Countdown function – assumes mediaStream is already active
+            function startCountdown() {
+                stopCountdown(); // clear any previous
+                countdownValue = 5;
+                countdownOverlay.textContent = countdownValue;
+                countdownOverlay.classList.add('visible');
+                isCountdownActive = true;
+                countdownFinished = false;
+
+                // update UI: during countdown we disable start, enable stop (to abort)
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                statusSpan.innerHTML = '⏳ recording starts in 5...';
+
+                countdownInterval = setInterval(() => {
+                    countdownValue -= 1;
+                    countdownOverlay.textContent = countdownValue;
+
+                    if (countdownValue <= 0) {
+                        // COUNTDOWN FINISHED – start actual recording
+                        stopCountdown(); // remove overlay & interval
+                        countdownFinished = true;
+
+                        // Make sure we still have a stream (maybe user aborted during countdown)
+                        if (!mediaStream) {
+                            statusSpan.innerHTML = '⚠️ stream lost';
+                            setUiForRecording(false);
+                            return;
+                        }
+
+                        // Set up MediaRecorder and start
+                        try {
+                            mediaRecorder = new MediaRecorder(mediaStream, {
+                                mimeType: 'video/webm;codecs=vp8,opus',
+                                videoBitsPerSecond: 4000000,
+                            });
+
+                            mediaRecorder.ondataavailable = (e) => {
+                                if (e.data.size > 0) recordedChunks.push(e.data);
+                            };
+
+                            mediaRecorder.onstop = () => {
+                                stopTimer();
+                                setUiForRecording(false);
+                                // we keep stream alive for preview
+                            };
+
+                            mediaRecorder.start();
+                            startTimer();
+                            setUiForRecording(true);
+                            statusSpan.innerHTML = '🔴 recording';
+                        } catch (e) {
+                            console.error('Recorder failed:', e);
+                            statusSpan.innerHTML = '⚠️ recorder error';
+                        }
+                    }
+                }, 1000);
+            }
+
+            // Stop button: abort countdown OR stop recording
+            function stopAction() {
+                if (isCountdownActive) {
+                    // Abort the countdown, but keep the stream preview (don't stop sharing)
+                    stopCountdown();
+                    statusSpan.innerHTML = '⏸️ countdown cancelled · ready';
+                    startBtn.disabled = false;   // allow new start
+                    stopBtn.disabled = true;      // stop button only useful during countdown/rec
+                    // we do NOT stop the stream – preview stays
+                } else if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    // stop recording, keep stream alive for preview
+                    mediaRecorder.stop();
+                } else {
+                    // fallback: stop tracks if any
                     stopAllTracks();
                     setUiForRecording(false);
-                    stopCountdown();
-                    startBtn.disabled = false;
-                    stopBtn.disabled = true;
                 }
             }
 
-            // === STOP RECORDING (or abort countdown) ===
-            function stopRecordingOrAbort() {
-                if (isCountingDown) {
-                    // abort countdown, revert to idle
-                    stopCountdown();
-                    statusSpan.innerHTML = '⏸️ idle';
-                    startBtn.disabled = false;
-                    stopBtn.disabled = true;
-                    countdownOverlay.classList.remove('visible');
-                    // also clean any potential leftover (no stream yet)
-                    return;
-                }
-
-                // normal recording stop
-                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                    mediaRecorder.stop();
-                }
-                // we don't stop tracks, keep preview
-            }
-
-            // === SCALE AND DOWNLOAD (9:16 with audio) ===
+            // Download with 9:16 scaling (preserves audio)
             function scaleAndDownload() {
                 if (recordedChunks.length === 0) return;
 
@@ -462,11 +468,9 @@
                     try {
                         await hiddenVideo.play();
 
-                        // get original audio+video stream from hidden video
                         const originalStream = hiddenVideo.captureStream();
                         const originalAudioTracks = originalStream.getAudioTracks();
 
-                        // canvas for 9:16 scaling
                         const canvas = document.createElement('canvas');
                         canvas.width = 1080;
                         canvas.height = 1920;
@@ -475,10 +479,9 @@
                         const canvasStream = canvas.captureStream(30);
                         const canvasVideoTrack = canvasStream.getVideoTracks()[0];
 
-                        // build final stream with canvas video + original audio
                         const finalStream = new MediaStream();
                         finalStream.addTrack(canvasVideoTrack);
-                        originalAudioTracks.forEach(track => finalStream.addTrack(track));
+                        originalAudioTracks.forEach(t => finalStream.addTrack(t));
 
                         const finalRecorder = new MediaRecorder(finalStream, {
                             mimeType: 'video/webm;codecs=vp8,opus',
@@ -504,18 +507,18 @@
                                 return;
                             }
                             ctx.clearRect(0, 0, 1080, 1920);
-                            // crop to 9:16 (center)
-                            const videoAspect = hiddenVideo.videoWidth / hiddenVideo.videoHeight;
-                            const targetAspect = 9/16; // 0.5625
+                            const vw = hiddenVideo.videoWidth, vh = hiddenVideo.videoHeight;
+                            const targetAspect = 9/16;
+                            const videoAspect = vw / vh;
                             let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
                             if (videoAspect > targetAspect) {
-                                drawHeight = hiddenVideo.videoHeight;
-                                drawWidth = hiddenVideo.videoHeight * targetAspect;
-                                offsetX = (hiddenVideo.videoWidth - drawWidth) / 2;
+                                drawHeight = vh;
+                                drawWidth = vh * targetAspect;
+                                offsetX = (vw - drawWidth) / 2;
                             } else {
-                                drawWidth = hiddenVideo.videoWidth;
-                                drawHeight = hiddenVideo.videoWidth / targetAspect;
-                                offsetY = (hiddenVideo.videoHeight - drawHeight) / 2;
+                                drawWidth = vw;
+                                drawHeight = vw / targetAspect;
+                                offsetY = (vh - drawHeight) / 2;
                             }
                             ctx.drawImage(hiddenVideo, offsetX, offsetY, drawWidth, drawHeight, 0, 0, 1080, 1920);
                             frameReq = requestAnimationFrame(drawFrame);
@@ -529,33 +532,26 @@
                             cancelAnimationFrame(frameReq);
                         };
                     } catch (e) {
-                        alert('Scaling error, but original recording is safe.');
+                        alert('Scaling failed – raw recording is safe.');
                         console.error(e);
                     }
                 };
-                hiddenVideo.play(); // trigger load
+                hiddenVideo.play();
             }
 
-            // wire buttons
+            // Event listeners
             startBtn.addEventListener('click', () => {
-                // stop any previous stream & clean
-                stopAllTracks();
+                // clear previous recording data, stop old stream
                 recordedChunks = [];
+                stopAllTracks();
                 stopCountdown();
-                // start countdown (UI). stream acquisition will happen after countdown
-                startCountdown();
+                startScreenAndCountdown();
             });
 
-            stopBtn.addEventListener('click', () => {
-                stopRecordingOrAbort();
-                // if we were counting down, the above handles it.
-                // if recording, stops recorder.
-            });
+            stopBtn.addEventListener('click', stopAction);
 
             downloadBtn.addEventListener('click', () => {
-                if (recordedChunks.length) {
-                    scaleAndDownload();
-                }
+                if (recordedChunks.length) scaleAndDownload();
             });
 
             // initial UI
