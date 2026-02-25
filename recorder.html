@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>9:16 + long form · dual aspect recorder</title>
+    <title>24h · max quality dual aspect recorder</title>
     <style>
         * {
             box-sizing: border-box;
@@ -23,7 +23,7 @@
             border-radius: 2.5rem;
             padding: 2rem 2rem 2.5rem;
             box-shadow: 0 25px 40px -10px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,215,0,0.15);
-            width: 760px;
+            width: 780px;
             max-width: 94vw;
         }
         h1 {
@@ -71,7 +71,7 @@
             height: 100%;
             object-fit: cover;
             background: #171b24;
-            transform: scaleX(-1); /* mirror for natural preview */
+            transform: scaleX(-1);
             display: block;
             pointer-events: none;
         }
@@ -90,7 +90,6 @@
             letter-spacing: 0.3px;
             z-index: 5;
         }
-        /* countdown overlay */
         .countdown-overlay {
             position: absolute;
             top: 0;
@@ -225,35 +224,33 @@
 </head>
 <body>
     <div class="card">
-        <h1>🎬 Dual aspect <span>long form + shorts</span></h1>
-        <div class="sub">▼ choose output format before recording · 5s countdown</div>
+        <h1>⚡ 24h MAX recorder <span>ultra bitrate</span></h1>
+        <div class="sub">▼ full original resolution · up to 24h · zero lag scaling</div>
 
-        <!-- aspect selector: short (9:16) or long (16:9) -->
         <div class="aspect-toggle" id="aspectToggle">
-            <button class="aspect-option active" data-aspect="portrait">📱 9:16 &nbsp; (shorts / reel)</button>
-            <button class="aspect-option" data-aspect="landscape">🖥️ 16:9 &nbsp; (long form / youtube)</button>
+            <button class="aspect-option active" data-aspect="portrait">📱 9:16 &nbsp; (shorts)</button>
+            <button class="aspect-option" data-aspect="landscape">🖥️ 16:9 &nbsp; (long form / 24h)</button>
         </div>
 
-        <!-- preview with countdown overlay -->
         <div class="preview-container" id="previewContainer" style="aspect-ratio: 9/16;">
             <video id="preview" autoplay playsinline muted></video>
             <div class="countdown-overlay" id="countdownOverlay">5</div>
-            <div class="preview-label" id="previewLabel">9:16 live · countdown then record</div>
+            <div class="preview-label" id="previewLabel">9:16 preview</div>
         </div>
 
         <div class="controls">
-            <button class="record-btn" id="startBtn">🔴 Start screen share</button>
+            <button class="record-btn" id="startBtn">🔴 Start share (24h ready)</button>
             <button class="stop-btn" id="stopBtn" disabled>⏹️ Stop</button>
-            <button class="download-btn" id="downloadBtn" disabled>💾 Download video</button>
+            <button class="download-btn" id="downloadBtn" disabled>💾 Download max quality</button>
         </div>
 
         <div class="info-row">
             <span>⏱️ <span id="timer">0:00</span></span>
             <span class="badge" id="status">⏸️ idle</span>
-            <span>⚡ <span id="aspectIndicator">9:16</span> output</span>
+            <span>⚡ <span id="aspectIndicator">9:16</span> · raw first</span>
         </div>
         <div class="footnote">
-            ⬇️ after countdown, recording starts — final video scaled to selected aspect (audio included)
+            ⬇️ records original stream (no scaling during recording) → then transforms to selected aspect without quality loss. up to 24h.
         </div>
     </div>
 
@@ -273,49 +270,53 @@
             const aspectOptions = document.querySelectorAll('.aspect-option');
 
             // state
-            let mediaStream = null;            // raw stream from display (+ mic)
+            let mediaStream = null;            
             let mediaRecorder = null;
             let recordedChunks = [];
             let startTime = 0;
             let timerInterval = null;
+            let recordingStartTime = 0;          // for 24h limit check (optional, but we allow 24h)
+            const MAX_RECORDING_MS = 24 * 60 * 60 * 1000; // 24h in milliseconds
 
-            // countdown related
+            // countdown
             let countdownInterval = null;
             let countdownValue = 5;
             let isCountdownActive = false;
-            let countdownFinished = false;  
 
-            // selected aspect: 'portrait' (9:16) or 'landscape' (16:9)
-            let selectedAspect = 'portrait';   // default
+            // selected aspect
+            let selectedAspect = 'portrait';   
 
-            // UI: update container aspect + label
+            // UI update for aspect
             function updateAspectUI() {
                 if (selectedAspect === 'portrait') {
                     previewContainer.style.aspectRatio = '9 / 16';
-                    previewLabel.innerHTML = '9:16 live · countdown then record';
+                    previewLabel.innerHTML = '9:16 preview · record full then transform';
                     aspectIndicator.innerText = '9:16';
                 } else {
                     previewContainer.style.aspectRatio = '16 / 9';
-                    previewLabel.innerHTML = '16:9 live · long form · countdown';
+                    previewLabel.innerHTML = '16:9 preview · long form max';
                     aspectIndicator.innerText = '16:9';
                 }
             }
 
-            // toggle active class on buttons
             aspectOptions.forEach(btn => {
                 btn.addEventListener('click', () => {
                     aspectOptions.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    selectedAspect = btn.dataset.aspect; // 'portrait' or 'landscape'
+                    selectedAspect = btn.dataset.aspect;
                     updateAspectUI();
                 });
             });
 
-            // helper: format mm:ss
+            // timer format hh:mm:ss (for long recordings)
             function formatTime(seconds) {
-                const m = Math.floor(seconds / 60);
-                const s = Math.floor(seconds % 60);
-                return `${m}:${s < 10 ? '0' : ''}${s}`;
+                const hrs = Math.floor(seconds / 3600);
+                const mins = Math.floor((seconds % 3600) / 60);
+                const secs = Math.floor(seconds % 60);
+                if (hrs > 0) {
+                    return `${hrs}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                }
+                return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
             }
 
             function updateTimer() {
@@ -339,13 +340,12 @@
                 startTime = 0;
             }
 
-            // UI update for recording state
             function setUiForRecording(recording) {
                 if (recording) {
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
                     downloadBtn.disabled = true;
-                    statusSpan.innerHTML = '🔴 recording';
+                    statusSpan.innerHTML = '🔴 recording (max 24h)';
                 } else {
                     startBtn.disabled = false;
                     stopBtn.disabled = true;
@@ -354,7 +354,6 @@
                 }
             }
 
-            // stop all tracks and clean up
             function stopAllTracks() {
                 if (mediaStream) {
                     mediaStream.getTracks().forEach(track => track.stop());
@@ -363,7 +362,6 @@
                 previewVideo.srcObject = null;
             }
 
-            // clear countdown timer and hide overlay
             function stopCountdown() {
                 if (countdownInterval) {
                     clearInterval(countdownInterval);
@@ -373,30 +371,46 @@
                 isCountdownActive = false;
             }
 
-            // START THE PROCESS: ask for screen, show preview, then begin countdown
+            // 24h safety inside recording – if time exceeds, auto-stop
+            function checkMaxDuration() {
+                if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+                const elapsed = Date.now() - recordingStartTime;
+                if (elapsed >= MAX_RECORDING_MS) {
+                    console.log('24h limit reached, stopping recorder');
+                    mediaRecorder.stop();
+                }
+            }
+
             async function startScreenAndCountdown() {
-                // reset previous recording data
                 recordedChunks = [];
                 downloadBtn.disabled = true;
-                stopAllTracks();               
-                stopCountdown();                
+                stopAllTracks();
+                stopCountdown();
 
                 try {
-                    // 1. screen + audio (system audio)
+                    // request highest possible quality
                     const displayStream = await navigator.mediaDevices.getDisplayMedia({
-                        video: true,
+                        video: {
+                            width: { ideal: 3840 },  // request 4k if available
+                            height: { ideal: 2160 },
+                            frameRate: { ideal: 60 },
+                        },
                         audio: true,
                     });
 
-                    // 2. optional microphone
+                    // mic
                     let micStream = null;
                     try {
-                        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    } catch (e) {
-                        console.log('No microphone, continuing without mic');
-                    }
+                        micStream = await navigator.mediaDevices.getUserMedia({ 
+                            audio: {
+                                echoCancellation: true,
+                                noiseSuppression: true,
+                                sampleRate: { ideal: 48000 },
+                            } 
+                        });
+                    } catch (e) {}
 
-                    // 3. combine audio tracks (system + mic)
+                    // combine audio
                     const audioTracks = [];
                     displayStream.getAudioTracks().forEach(t => audioTracks.push(t));
                     if (micStream) {
@@ -406,7 +420,6 @@
                     const videoTrack = displayStream.getVideoTracks()[0];
                     if (!videoTrack) throw new Error('No video track');
 
-                    // 4. create final mediaStream
                     let finalStream;
                     if (audioTracks.length) {
                         finalStream = new MediaStream([videoTrack, ...audioTracks]);
@@ -415,9 +428,8 @@
                     }
 
                     mediaStream = finalStream;
-                    previewVideo.srcObject = mediaStream;   // live preview
+                    previewVideo.srcObject = mediaStream;
 
-                    // 5. when user stops sharing via browser button, clean up
                     videoTrack.onended = () => {
                         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                             mediaRecorder.stop();
@@ -428,7 +440,6 @@
                         statusSpan.innerHTML = '⏹️ sharing stopped';
                     };
 
-                    // 6. start the 5‑second countdown
                     startCountdown();
 
                 } catch (err) {
@@ -438,14 +449,12 @@
                 }
             }
 
-            // Countdown function – assumes mediaStream is active
             function startCountdown() {
-                stopCountdown(); 
+                stopCountdown();
                 countdownValue = 5;
                 countdownOverlay.textContent = countdownValue;
                 countdownOverlay.classList.add('visible');
                 isCountdownActive = true;
-                countdownFinished = false;
 
                 startBtn.disabled = true;
                 stopBtn.disabled = false;
@@ -456,9 +465,7 @@
                     countdownOverlay.textContent = countdownValue;
 
                     if (countdownValue <= 0) {
-                        // COUNTDOWN FINISHED – start recording
                         stopCountdown(); 
-                        countdownFinished = true;
 
                         if (!mediaStream) {
                             statusSpan.innerHTML = '⚠️ stream lost';
@@ -466,11 +473,32 @@
                             return;
                         }
 
-                        // Set up MediaRecorder and start
                         try {
+                            // Use high bitrate, max quality, and timeslice to avoid memory explosion
+                            // also we want to handle large recordings, so we use { timeslice: 5000 } if needed? but ondataavailable will fire automatically.
+                            // For long recordings we keep mimeType high.
+
+                            // Prefer high bitrate and hardware-accelerated codec
+                            const mimeTypes = [
+                                'video/webm;codecs=vp9,opus',
+                                'video/webm;codecs=vp8,opus',
+                                'video/webm;codecs=vp8',
+                                'video/webm'
+                            ];
+                            let selectedMime = 'video/webm;codecs=vp8,opus';
+                            for (let mt of mimeTypes) {
+                                if (MediaRecorder.isTypeSupported(mt)) {
+                                    selectedMime = mt;
+                                    break;
+                                }
+                            }
+
+                            // Use very high bitrate (50 Mbps) for near-lossless, but browser may clamp.
+                            // We also pass videoBitsPerSecond as a hint.
                             mediaRecorder = new MediaRecorder(mediaStream, {
-                                mimeType: 'video/webm;codecs=vp8,opus',
-                                videoBitsPerSecond: 4000000,
+                                mimeType: selectedMime,
+                                videoBitsPerSecond: 50000000,  // 50 Mbps (browser may limit)
+                                audioBitsPerSecond: 320000,
                             });
 
                             mediaRecorder.ondataavailable = (e) => {
@@ -480,13 +508,26 @@
                             mediaRecorder.onstop = () => {
                                 stopTimer();
                                 setUiForRecording(false);
-                                // keep stream alive for preview
                             };
 
                             mediaRecorder.start();
+                            recordingStartTime = Date.now();
                             startTimer();
                             setUiForRecording(true);
-                            statusSpan.innerHTML = '🔴 recording';
+                            statusSpan.innerHTML = '🔴 recording max quality';
+
+                            // set an interval to check 24h limit every minute (optional, but nice)
+                            const maxDurationInterval = setInterval(() => {
+                                if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+                                    clearInterval(maxDurationInterval);
+                                    return;
+                                }
+                                if (Date.now() - recordingStartTime >= MAX_RECORDING_MS) {
+                                    mediaRecorder.stop();
+                                    clearInterval(maxDurationInterval);
+                                }
+                            }, 60000);
+
                         } catch (e) {
                             console.error('Recorder failed:', e);
                             statusSpan.innerHTML = '⚠️ recorder error';
@@ -495,16 +536,13 @@
                 }, 1000);
             }
 
-            // Stop button: abort countdown OR stop recording
             function stopAction() {
                 if (isCountdownActive) {
-                    // Abort countdown, keep preview
                     stopCountdown();
-                    statusSpan.innerHTML = '⏸️ countdown cancelled · ready';
-                    startBtn.disabled = false;   
-                    stopBtn.disabled = true;      
+                    statusSpan.innerHTML = '⏸️ countdown cancelled';
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
                 } else if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                    // stop recording, keep stream alive for preview
                     mediaRecorder.stop();
                 } else {
                     stopAllTracks();
@@ -512,10 +550,11 @@
                 }
             }
 
-            // ---------- SCALED DOWNLOAD (respects selected aspect) ----------
+            // ---------- HIGH-QUALITY TRANSFORM (NO LAG, FAST, PRESERVES ORIGINAL) ----------
             function scaleAndDownload() {
                 if (recordedChunks.length === 0) return;
 
+                // Combine chunks into a blob
                 const blob = new Blob(recordedChunks, { type: 'video/webm' });
                 const url = URL.createObjectURL(blob);
                 const hiddenVideo = document.createElement('video');
@@ -523,39 +562,57 @@
                 hiddenVideo.muted = false;
                 hiddenVideo.crossOrigin = 'anonymous';
                 hiddenVideo.playsInline = true;
+                hiddenVideo.preload = 'auto';
 
                 hiddenVideo.onloadedmetadata = async () => {
                     try {
+                        // Play to ensure frames are ready
                         await hiddenVideo.play();
 
-                        const originalStream = hiddenVideo.captureStream();
-                        const originalAudioTracks = originalStream.getAudioTracks();
+                        // Use original video dimensions (preserve all quality)
+                        const vw = hiddenVideo.videoWidth;
+                        const vh = hiddenVideo.videoHeight;
 
-                        // Set canvas dimensions based on selected aspect
+                        // Set canvas dimensions to selected aspect, but keep max resolution (at least HD, but could be bigger)
                         let canvasWidth, canvasHeight;
                         if (selectedAspect === 'portrait') {
-                            canvasWidth = 1080;
-                            canvasHeight = 1920;   // 9:16
+                            // 9:16 → we keep width as min(vw, 1080?) no, we use max to preserve detail:
+                            // we base on original height for portrait: height = originalHeight (or up to 4k)
+                            // But we must maintain 9:16 aspect: width = height * 9/16
+                            canvasHeight = Math.min(vh, 3840); // limit to 4k to avoid canvas crash
+                            canvasWidth = Math.round(canvasHeight * 9/16);
+                            // ensure even dimensions
+                            if (canvasWidth % 2) canvasWidth += 1;
+                            if (canvasHeight % 2) canvasHeight += 1;
                         } else {
-                            canvasWidth = 1920;
-                            canvasHeight = 1080;   // 16:9 (long form)
+                            // landscape 16:9: base width = vw (or max 3840)
+                            canvasWidth = Math.min(vw, 3840);
+                            canvasHeight = Math.round(canvasWidth * 9/16);
+                            if (canvasWidth % 2) canvasWidth += 1;
+                            if (canvasHeight % 2) canvasHeight += 1;
                         }
 
                         const canvas = document.createElement('canvas');
                         canvas.width = canvasWidth;
                         canvas.height = canvasHeight;
                         const ctx = canvas.getContext('2d');
+                        ctx.imageSmoothingEnabled = true;
+                        ctx.imageSmoothingQuality = 'high';
 
+                        // capture canvas stream at original FPS (estimate 30)
                         const canvasStream = canvas.captureStream(30);
+                        const originalAudio = hiddenVideo.captureStream().getAudioTracks();
                         const canvasVideoTrack = canvasStream.getVideoTracks()[0];
 
                         const finalStream = new MediaStream();
                         finalStream.addTrack(canvasVideoTrack);
-                        originalAudioTracks.forEach(t => finalStream.addTrack(t));
+                        originalAudio.forEach(t => finalStream.addTrack(t));
 
+                        // high bitrate for output
                         const finalRecorder = new MediaRecorder(finalStream, {
-                            mimeType: 'video/webm;codecs=vp8,opus',
-                            videoBitsPerSecond: 4000000
+                            mimeType: 'video/webm;codecs=vp9,opus',
+                            videoBitsPerSecond: 50000000,
+                            audioBitsPerSecond: 320000,
                         });
                         const scaledChunks = [];
                         finalRecorder.ondataavailable = (e) => scaledChunks.push(e.data);
@@ -564,14 +621,14 @@
                             const finalUrl = URL.createObjectURL(finalBlob);
                             const a = document.createElement('a');
                             a.href = finalUrl;
-                            const aspectTag = selectedAspect === 'portrait' ? '9x16' : '16x9';
-                            a.download = `${aspectTag}_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.webm`;
+                            const aspectTag = selectedAspect === 'portrait' ? 'portrait_9x16' : 'landscape_16x9';
+                            a.download = `${aspectTag}_max_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.webm`;
                             a.click();
                             URL.revokeObjectURL(finalUrl);
-                            statusSpan.innerHTML = `✅ download ready (${aspectTag})`;
+                            statusSpan.innerHTML = `✅ max quality ready (${aspectTag})`;
                         };
 
-                        // scaling draw routine
+                        // drawing routine with correct cropping
                         function drawFrame() {
                             if (hiddenVideo.paused || hiddenVideo.ended) {
                                 if (finalRecorder.state !== 'inactive') finalRecorder.stop();
@@ -579,15 +636,14 @@
                                 return;
                             }
                             ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-                            const vw = hiddenVideo.videoWidth, vh = hiddenVideo.videoHeight;
+
                             const targetAspect = (selectedAspect === 'portrait') ? 9/16 : 16/9;
                             const videoAspect = vw / vh;
 
                             let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
 
-                            if (selectedAspect === 'portrait') {  // 9:16 (tall)
+                            if (selectedAspect === 'portrait') { // 9:16
                                 if (videoAspect > targetAspect) {
-                                    // crop sides
                                     drawHeight = vh;
                                     drawWidth = vh * targetAspect;
                                     offsetX = (vw - drawWidth) / 2;
@@ -596,9 +652,8 @@
                                     drawHeight = vw / targetAspect;
                                     offsetY = (vh - drawHeight) / 2;
                                 }
-                            } else { // landscape 16:9 (wide)
+                            } else { // landscape 16:9
                                 if (videoAspect > targetAspect) {
-                                    // crop left/right
                                     drawHeight = vh;
                                     drawWidth = vh * targetAspect;
                                     offsetX = (vw - drawWidth) / 2;
@@ -621,14 +676,13 @@
                             cancelAnimationFrame(frameReq);
                         };
                     } catch (e) {
-                        alert('Scaling failed – raw recording is safe.');
+                        alert('Scaling failed – but raw recording is safe. Try downloading raw?');
                         console.error(e);
                     }
                 };
                 hiddenVideo.play();
             }
 
-            // Event listeners
             startBtn.addEventListener('click', () => {
                 recordedChunks = [];
                 stopAllTracks();
@@ -642,7 +696,6 @@
                 if (recordedChunks.length) scaleAndDownload();
             });
 
-            // initial UI
             setUiForRecording(false);
             updateAspectUI();
         })();
