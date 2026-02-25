@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>9:16 recorder · 5 sec preparation</title>
+    <title>9:16 + long form · dual aspect recorder</title>
     <style>
         * {
             box-sizing: border-box;
@@ -23,7 +23,7 @@
             border-radius: 2.5rem;
             padding: 2rem 2rem 2.5rem;
             box-shadow: 0 25px 40px -10px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,215,0,0.15);
-            width: 680px;
+            width: 760px;
             max-width: 94vw;
         }
         h1 {
@@ -35,6 +35,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            flex-wrap: wrap;
         }
         h1 span {
             background: #9f7e1f;
@@ -58,7 +59,7 @@
             overflow: hidden;
             border: 2px solid #3f3d52;
             box-shadow: inset 0 0 15px #00000055;
-            margin-bottom: 2rem;
+            margin-bottom: 1.8rem;
             aspect-ratio: 9 / 16;
             display: flex;
             align-items: center;
@@ -89,7 +90,7 @@
             letter-spacing: 0.3px;
             z-index: 5;
         }
-        /* countdown overlay – appears on top of live preview */
+        /* countdown overlay */
         .countdown-overlay {
             position: absolute;
             top: 0;
@@ -113,6 +114,34 @@
         }
         .countdown-overlay.visible {
             opacity: 1;
+        }
+        .aspect-toggle {
+            display: flex;
+            gap: 0.75rem;
+            margin: 0 0 1.2rem 0;
+            background: #1b1f2b;
+            padding: 0.4rem;
+            border-radius: 3rem;
+            border: 1px solid #3e3c4a;
+        }
+        .aspect-option {
+            flex: 1;
+            text-align: center;
+            padding: 0.6rem 0.8rem;
+            border-radius: 2.5rem;
+            background: transparent;
+            color: #b1b9d0;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: none;
+            letter-spacing: 0.3px;
+        }
+        .aspect-option.active {
+            background: #2f374b;
+            color: #ffdb8e;
+            box-shadow: 0 2px 6px black;
         }
         .controls {
             display: flex;
@@ -196,29 +225,35 @@
 </head>
 <body>
     <div class="card">
-        <h1>🎬 9:16 Recorder <span>5s prep</span></h1>
-        <div class="sub">▼ start sharing → 5‑second countdown → recording begins</div>
+        <h1>🎬 Dual aspect <span>long form + shorts</span></h1>
+        <div class="sub">▼ choose output format before recording · 5s countdown</div>
+
+        <!-- aspect selector: short (9:16) or long (16:9) -->
+        <div class="aspect-toggle" id="aspectToggle">
+            <button class="aspect-option active" data-aspect="portrait">📱 9:16 &nbsp; (shorts / reel)</button>
+            <button class="aspect-option" data-aspect="landscape">🖥️ 16:9 &nbsp; (long form / youtube)</button>
+        </div>
 
         <!-- preview with countdown overlay -->
-        <div class="preview-container">
+        <div class="preview-container" id="previewContainer" style="aspect-ratio: 9/16;">
             <video id="preview" autoplay playsinline muted></video>
             <div class="countdown-overlay" id="countdownOverlay">5</div>
-            <div class="preview-label">9:16 live · countdown then record</div>
+            <div class="preview-label" id="previewLabel">9:16 live · countdown then record</div>
         </div>
 
         <div class="controls">
             <button class="record-btn" id="startBtn">🔴 Start screen share</button>
             <button class="stop-btn" id="stopBtn" disabled>⏹️ Stop</button>
-            <button class="download-btn" id="downloadBtn" disabled>💾 Download short</button>
+            <button class="download-btn" id="downloadBtn" disabled>💾 Download video</button>
         </div>
 
         <div class="info-row">
             <span>⏱️ <span id="timer">0:00</span></span>
             <span class="badge" id="status">⏸️ idle</span>
-            <span>⚡ auto 9:16</span>
+            <span>⚡ <span id="aspectIndicator">9:16</span> output</span>
         </div>
         <div class="footnote">
-            ⬇️ after countdown, recording starts — output is 1080x1920 with audio
+            ⬇️ after countdown, recording starts — final video scaled to selected aspect (audio included)
         </div>
     </div>
 
@@ -232,6 +267,10 @@
             const timerSpan = document.getElementById('timer');
             const statusSpan = document.getElementById('status');
             const countdownOverlay = document.getElementById('countdownOverlay');
+            const previewContainer = document.getElementById('previewContainer');
+            const previewLabel = document.getElementById('previewLabel');
+            const aspectIndicator = document.getElementById('aspectIndicator');
+            const aspectOptions = document.querySelectorAll('.aspect-option');
 
             // state
             let mediaStream = null;            // raw stream from display (+ mic)
@@ -244,7 +283,33 @@
             let countdownInterval = null;
             let countdownValue = 5;
             let isCountdownActive = false;
-            let countdownFinished = false;      // becomes true when countdown reaches 0
+            let countdownFinished = false;  
+
+            // selected aspect: 'portrait' (9:16) or 'landscape' (16:9)
+            let selectedAspect = 'portrait';   // default
+
+            // UI: update container aspect + label
+            function updateAspectUI() {
+                if (selectedAspect === 'portrait') {
+                    previewContainer.style.aspectRatio = '9 / 16';
+                    previewLabel.innerHTML = '9:16 live · countdown then record';
+                    aspectIndicator.innerText = '9:16';
+                } else {
+                    previewContainer.style.aspectRatio = '16 / 9';
+                    previewLabel.innerHTML = '16:9 live · long form · countdown';
+                    aspectIndicator.innerText = '16:9';
+                }
+            }
+
+            // toggle active class on buttons
+            aspectOptions.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    aspectOptions.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedAspect = btn.dataset.aspect; // 'portrait' or 'landscape'
+                    updateAspectUI();
+                });
+            });
 
             // helper: format mm:ss
             function formatTime(seconds) {
@@ -313,17 +378,17 @@
                 // reset previous recording data
                 recordedChunks = [];
                 downloadBtn.disabled = true;
-                stopAllTracks();               // kill old stream if any
-                stopCountdown();                // just in case
+                stopAllTracks();               
+                stopCountdown();                
 
                 try {
-                    // 1. immediately ask for screen + audio (system audio optional)
+                    // 1. screen + audio (system audio)
                     const displayStream = await navigator.mediaDevices.getDisplayMedia({
                         video: true,
                         audio: true,
                     });
 
-                    // 2. optionally request microphone
+                    // 2. optional microphone
                     let micStream = null;
                     try {
                         micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -350,11 +415,10 @@
                     }
 
                     mediaStream = finalStream;
-                    previewVideo.srcObject = mediaStream;   // live preview starts
+                    previewVideo.srcObject = mediaStream;   // live preview
 
                     // 5. when user stops sharing via browser button, clean up
                     videoTrack.onended = () => {
-                        // if recording is active, stop recorder
                         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                             mediaRecorder.stop();
                         }
@@ -364,7 +428,7 @@
                         statusSpan.innerHTML = '⏹️ sharing stopped';
                     };
 
-                    // 6. now start the 5‑second countdown (preparation period)
+                    // 6. start the 5‑second countdown
                     startCountdown();
 
                 } catch (err) {
@@ -374,16 +438,15 @@
                 }
             }
 
-            // Countdown function – assumes mediaStream is already active
+            // Countdown function – assumes mediaStream is active
             function startCountdown() {
-                stopCountdown(); // clear any previous
+                stopCountdown(); 
                 countdownValue = 5;
                 countdownOverlay.textContent = countdownValue;
                 countdownOverlay.classList.add('visible');
                 isCountdownActive = true;
                 countdownFinished = false;
 
-                // update UI: during countdown we disable start, enable stop (to abort)
                 startBtn.disabled = true;
                 stopBtn.disabled = false;
                 statusSpan.innerHTML = '⏳ recording starts in 5...';
@@ -393,11 +456,10 @@
                     countdownOverlay.textContent = countdownValue;
 
                     if (countdownValue <= 0) {
-                        // COUNTDOWN FINISHED – start actual recording
-                        stopCountdown(); // remove overlay & interval
+                        // COUNTDOWN FINISHED – start recording
+                        stopCountdown(); 
                         countdownFinished = true;
 
-                        // Make sure we still have a stream (maybe user aborted during countdown)
                         if (!mediaStream) {
                             statusSpan.innerHTML = '⚠️ stream lost';
                             setUiForRecording(false);
@@ -418,7 +480,7 @@
                             mediaRecorder.onstop = () => {
                                 stopTimer();
                                 setUiForRecording(false);
-                                // we keep stream alive for preview
+                                // keep stream alive for preview
                             };
 
                             mediaRecorder.start();
@@ -436,23 +498,21 @@
             // Stop button: abort countdown OR stop recording
             function stopAction() {
                 if (isCountdownActive) {
-                    // Abort the countdown, but keep the stream preview (don't stop sharing)
+                    // Abort countdown, keep preview
                     stopCountdown();
                     statusSpan.innerHTML = '⏸️ countdown cancelled · ready';
-                    startBtn.disabled = false;   // allow new start
-                    stopBtn.disabled = true;      // stop button only useful during countdown/rec
-                    // we do NOT stop the stream – preview stays
+                    startBtn.disabled = false;   
+                    stopBtn.disabled = true;      
                 } else if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                     // stop recording, keep stream alive for preview
                     mediaRecorder.stop();
                 } else {
-                    // fallback: stop tracks if any
                     stopAllTracks();
                     setUiForRecording(false);
                 }
             }
 
-            // Download with 9:16 scaling (preserves audio)
+            // ---------- SCALED DOWNLOAD (respects selected aspect) ----------
             function scaleAndDownload() {
                 if (recordedChunks.length === 0) return;
 
@@ -471,9 +531,19 @@
                         const originalStream = hiddenVideo.captureStream();
                         const originalAudioTracks = originalStream.getAudioTracks();
 
+                        // Set canvas dimensions based on selected aspect
+                        let canvasWidth, canvasHeight;
+                        if (selectedAspect === 'portrait') {
+                            canvasWidth = 1080;
+                            canvasHeight = 1920;   // 9:16
+                        } else {
+                            canvasWidth = 1920;
+                            canvasHeight = 1080;   // 16:9 (long form)
+                        }
+
                         const canvas = document.createElement('canvas');
-                        canvas.width = 1080;
-                        canvas.height = 1920;
+                        canvas.width = canvasWidth;
+                        canvas.height = canvasHeight;
                         const ctx = canvas.getContext('2d');
 
                         const canvasStream = canvas.captureStream(30);
@@ -494,33 +564,52 @@
                             const finalUrl = URL.createObjectURL(finalBlob);
                             const a = document.createElement('a');
                             a.href = finalUrl;
-                            a.download = `shorts_9_16_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.webm`;
+                            const aspectTag = selectedAspect === 'portrait' ? '9x16' : '16x9';
+                            a.download = `${aspectTag}_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.webm`;
                             a.click();
                             URL.revokeObjectURL(finalUrl);
-                            statusSpan.innerHTML = '✅ download ready (9:16)';
+                            statusSpan.innerHTML = `✅ download ready (${aspectTag})`;
                         };
 
+                        // scaling draw routine
                         function drawFrame() {
                             if (hiddenVideo.paused || hiddenVideo.ended) {
-                                finalRecorder.stop();
+                                if (finalRecorder.state !== 'inactive') finalRecorder.stop();
                                 cancelAnimationFrame(frameReq);
                                 return;
                             }
-                            ctx.clearRect(0, 0, 1080, 1920);
+                            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
                             const vw = hiddenVideo.videoWidth, vh = hiddenVideo.videoHeight;
-                            const targetAspect = 9/16;
+                            const targetAspect = (selectedAspect === 'portrait') ? 9/16 : 16/9;
                             const videoAspect = vw / vh;
+
                             let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
-                            if (videoAspect > targetAspect) {
-                                drawHeight = vh;
-                                drawWidth = vh * targetAspect;
-                                offsetX = (vw - drawWidth) / 2;
-                            } else {
-                                drawWidth = vw;
-                                drawHeight = vw / targetAspect;
-                                offsetY = (vh - drawHeight) / 2;
+
+                            if (selectedAspect === 'portrait') {  // 9:16 (tall)
+                                if (videoAspect > targetAspect) {
+                                    // crop sides
+                                    drawHeight = vh;
+                                    drawWidth = vh * targetAspect;
+                                    offsetX = (vw - drawWidth) / 2;
+                                } else {
+                                    drawWidth = vw;
+                                    drawHeight = vw / targetAspect;
+                                    offsetY = (vh - drawHeight) / 2;
+                                }
+                            } else { // landscape 16:9 (wide)
+                                if (videoAspect > targetAspect) {
+                                    // crop left/right
+                                    drawHeight = vh;
+                                    drawWidth = vh * targetAspect;
+                                    offsetX = (vw - drawWidth) / 2;
+                                } else {
+                                    drawWidth = vw;
+                                    drawHeight = vw / targetAspect;
+                                    offsetY = (vh - drawHeight) / 2;
+                                }
                             }
-                            ctx.drawImage(hiddenVideo, offsetX, offsetY, drawWidth, drawHeight, 0, 0, 1080, 1920);
+
+                            ctx.drawImage(hiddenVideo, offsetX, offsetY, drawWidth, drawHeight, 0, 0, canvasWidth, canvasHeight);
                             frameReq = requestAnimationFrame(drawFrame);
                         }
 
@@ -541,7 +630,6 @@
 
             // Event listeners
             startBtn.addEventListener('click', () => {
-                // clear previous recording data, stop old stream
                 recordedChunks = [];
                 stopAllTracks();
                 stopCountdown();
@@ -556,6 +644,7 @@
 
             // initial UI
             setUiForRecording(false);
+            updateAspectUI();
         })();
     </script>
 </body>
