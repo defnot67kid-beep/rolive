@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cut · live preview · like CapCut</title>
+    <title>✅ WORKING cutter · live preview</title>
     <style>
         * {
             box-sizing: border-box;
@@ -22,26 +22,22 @@
             background: rgba(18, 22, 33, 0.9);
             backdrop-filter: blur(8px);
             border-radius: 2rem;
-            padding: 1.8rem 1.8rem 2.2rem;
-            box-shadow: 0 25px 40px -10px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,215,0,0.15);
+            padding: 1.8rem;
+            box-shadow: 0 25px 40px -10px rgba(0,0,0,0.7);
             width: 1000px;
             max-width: 98vw;
         }
         h1 {
             color: #f3e9c0;
-            font-weight: 500;
             font-size: 2rem;
-            letter-spacing: -0.5px;
-            margin: 0 0 0.25rem 0;
+            margin: 0 0 0.25rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            flex-wrap: wrap;
         }
         h1 span {
             background: #9f7e1f;
             font-size: 0.9rem;
-            font-weight: 600;
             padding: 0.15rem 1rem;
             border-radius: 40px;
             color: #0e0b1a;
@@ -53,7 +49,7 @@
             padding-left: 1rem;
         }
         
-        /* Dual preview containers */
+        /* Preview section */
         .preview-row {
             display: flex;
             gap: 16px;
@@ -62,14 +58,10 @@
         .preview-container {
             flex: 1;
             background: #0c0f16;
-            border-radius: 1.8rem;
+            border-radius: 1.5rem;
             overflow: hidden;
             border: 2px solid #3f3d52;
-            box-shadow: inset 0 0 15px #00000055;
             aspect-ratio: 9 / 16;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             position: relative;
         }
         #preview, #playbackPreview {
@@ -81,10 +73,6 @@
         }
         #preview {
             transform: scaleX(-1);
-            pointer-events: none;
-        }
-        #playbackPreview {
-            transform: none;
         }
         .preview-label {
             position: absolute;
@@ -92,7 +80,6 @@
             right: 16px;
             background: #00000080;
             color: #ffd966;
-            font-size: 0.8rem;
             padding: 4px 12px;
             border-radius: 30px;
             backdrop-filter: blur(2px);
@@ -109,148 +96,122 @@
             align-items: center;
             justify-content: center;
             background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(3px);
             color: white;
             font-size: 7rem;
             font-weight: 900;
-            text-shadow: 0 0 30px #ffb347;
             z-index: 20;
-            pointer-events: none;
             opacity: 0;
-            transition: opacity 0.2s ease;
-            border-radius: 1.8rem;
+            transition: opacity 0.2s;
+            border-radius: 1.5rem;
         }
         .countdown-overlay.visible {
             opacity: 1;
-        }
-        
-        .aspect-toggle {
-            display: flex;
-            gap: 0.75rem;
-            margin: 0 0 1.2rem 0;
-            background: #1b1f2b;
-            padding: 0.4rem;
-            border-radius: 3rem;
-            border: 1px solid #3e3c4a;
-        }
-        .aspect-option {
-            flex: 1;
-            text-align: center;
-            padding: 0.6rem 0.8rem;
-            border-radius: 2.5rem;
-            background: transparent;
-            color: #b1b9d0;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-        }
-        .aspect-option.active {
-            background: #2f374b;
-            color: #ffdb8e;
-            box-shadow: 0 2px 6px black;
         }
         
         /* Timeline editor */
         .timeline-section {
             background: #1a1e2b;
             border-radius: 2rem;
-            padding: 1.2rem 1.2rem 1.5rem;
-            margin: 1.5rem 0 1.2rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
             border: 1px solid #4a4553;
         }
         .timeline-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
             color: #e2d5b6;
-            margin-bottom: 0.8rem;
+            margin-bottom: 1rem;
         }
         .cut-badge {
             background: #c44545;
             color: white;
             padding: 0.2rem 1rem;
             border-radius: 30px;
-            font-size: 0.8rem;
-            font-weight: 600;
         }
-        .timeline-waveform {
-            flex: 1;
+        
+        /* Timeline track */
+        .timeline-track {
+            position: relative;
             height: 60px;
             background: #0f1322;
             border-radius: 40px;
-            display: flex;
-            align-items: center;
-            padding: 0 12px;
             border: 1px solid #5f5a6b;
-            position: relative;
+            margin: 20px 0;
+            cursor: pointer;
         }
-        .cut-marker {
+        .timeline-fill {
             position: absolute;
-            width: 4px;
-            height: 46px;
-            background: #f5c542;
-            border-radius: 4px;
-            top: 7px;
-            transform: translateX(-50%);
+            height: 100%;
+            background: #f5c54233;
+            border-radius: 40px;
             pointer-events: none;
-            box-shadow: 0 0 10px gold;
         }
-        .cut-handle {
+        .timeline-handle {
             position: absolute;
-            width: 20px;
-            height: 20px;
-            background: white;
-            border: 3px solid #f5c542;
-            border-radius: 20px;
-            top: 20px;
+            width: 16px;
+            height: 70px;
+            top: -5px;
             transform: translateX(-50%);
             cursor: ew-resize;
             z-index: 30;
-            box-shadow: 0 2px 8px black;
         }
-        .cut-handle.start {
+        .handle-line {
+            width: 4px;
+            height: 70px;
+            background: #f5c542;
+            margin: 0 auto;
+            border-radius: 4px;
+        }
+        .handle-circle {
+            width: 24px;
+            height: 24px;
+            background: white;
+            border: 3px solid #f5c542;
+            border-radius: 50%;
+            margin: -12px auto 0;
+        }
+        .start-handle .handle-circle {
             background: #4ae07a;
             border-color: #2ecc71;
         }
-        .cut-handle.end {
+        .end-handle .handle-circle {
             background: #e06a4a;
             border-color: #e74c3c;
         }
-        .time-labels {
+        
+        .time-display {
             display: flex;
             justify-content: space-between;
             color: #9f9bb5;
-            font-size: 0.8rem;
-            margin-top: 8px;
-            padding: 0 10px;
+            margin-bottom: 0.5rem;
         }
-        .cut-info {
+        .cut-values {
             display: flex;
             gap: 20px;
             justify-content: center;
-            margin: 15px 0 5px;
             color: #cfc7ae;
-            font-weight: 500;
         }
-        .cut-info span {
+        .cut-values span {
             background: #2b3040;
-            padding: 0.3rem 1.2rem;
+            padding: 0.3rem 1.5rem;
             border-radius: 40px;
         }
+        
+        /* Playback controls */
         .playback-controls {
             display: flex;
             gap: 10px;
             justify-content: center;
-            margin: 10px 0;
+            margin: 15px 0;
         }
         .playback-btn {
             background: #323a4b;
             border: none;
             color: white;
-            padding: 0.5rem 1.5rem;
+            padding: 0.5rem 2rem;
             border-radius: 30px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 1rem;
         }
         .playback-btn:hover {
             background: #3f485e;
@@ -258,17 +219,14 @@
         
         .controls {
             display: flex;
-            flex-wrap: wrap;
             gap: 0.75rem;
-            align-items: center;
-            margin: 1.2rem 0 1rem;
+            margin: 1.2rem 0;
         }
         button {
             background: #272b3a;
             border: none;
             color: #e9e1c7;
             font-size: 1.1rem;
-            font-weight: 500;
             padding: 0.8rem 1.8rem;
             border-radius: 2.5rem;
             display: inline-flex;
@@ -276,9 +234,8 @@
             gap: 10px;
             cursor: pointer;
             box-shadow: 0 6px 0 #0d0f17;
-            transition: 0.1s linear;
             border: 1px solid #5b5340;
-            flex: 1 1 auto;
+            flex: 1;
             justify-content: center;
         }
         button:active {
@@ -288,32 +245,24 @@
         button:disabled {
             opacity: 0.4;
             transform: translateY(2px);
-            box-shadow: 0 3px 0 #0d0f17;
             pointer-events: none;
         }
         .record-btn {
             background: #8b2a2a;
             border-color: #c97c4b;
-            box-shadow: 0 6px 0 #4d1a1a;
             color: white;
-        }
-        .stop-btn {
-            background: #2f374b;
-            border-color: #6f6d7a;
         }
         .download-btn {
             background: #2d5a3b;
             border-color: #64b07b;
-            box-shadow: 0 6px 0 #1d3a25;
-            color: #e6f0da;
         }
+        
         .info-row {
             background: #1b1f2b;
             border-radius: 3rem;
             padding: 0.7rem 1.5rem;
             display: flex;
             justify-content: space-between;
-            align-items: center;
             color: #cbc5b2;
             border: 1px solid #47423b;
         }
@@ -322,13 +271,12 @@
             padding: 0.35rem 1rem;
             border-radius: 3rem;
             color: #ffdb8e;
-            font-family: monospace;
         }
         .progress {
             height: 6px;
             background: #2a2e3c;
             border-radius: 10px;
-            margin: 10px 0 5px;
+            margin: 10px 0;
             overflow: hidden;
             display: none;
         }
@@ -342,15 +290,9 @@
 </head>
 <body>
     <div class="card">
-        <h1>🎬 Live preview cutter <span>see cuts before download</span></h1>
-        <div class="sub">▼ record → preview clip with cuts → download</div>
+        <h1>✅ WORKING CUTTER <span>live preview</span></h1>
+        <div class="sub">▼ record → drag handles → preview plays → download cut</div>
 
-        <div class="aspect-toggle" id="aspectToggle">
-            <button class="aspect-option active" data-aspect="portrait">📱 9:16 (shorts)</button>
-            <button class="aspect-option" data-aspect="landscape">🖥️ 16:9 (long form)</button>
-        </div>
-
-        <!-- Dual preview: live camera + recorded preview -->
         <div class="preview-row">
             <div class="preview-container">
                 <video id="preview" autoplay playsinline muted></video>
@@ -359,46 +301,55 @@
             </div>
             <div class="preview-container">
                 <video id="playbackPreview" playsinline></video>
-                <div class="preview-label" id="playbackLabel">preview with cuts</div>
+                <div class="preview-label">preview with cuts</div>
             </div>
         </div>
 
-        <!-- Timeline editor -->
+        <!-- Timeline section (hidden until recording exists) -->
         <div class="timeline-section" id="timelineSection" style="display: none;">
             <div class="timeline-header">
-                <span>✂️ drag handles to trim · preview updates live</span>
-                <span class="cut-badge" id="cutLengthDisplay">0:00 – 0:00</span>
+                <span>✂️ drag colored handles to cut</span>
+                <span class="cut-badge" id="cutRange">0:00 – 0:00</span>
             </div>
             
-            <!-- Playback controls -->
             <div class="playback-controls">
-                <button class="playback-btn" id="playPauseBtn">▶️ Play</button>
-                <button class="playback-btn" id="resetPreviewBtn">↺ Reset</button>
+                <button class="playback-btn" id="playBtn">▶️ Play Preview</button>
+                <button class="playback-btn" id="pauseBtn">⏸️ Pause</button>
+                <button class="playback-btn" id="resetBtn">↺ Reset</button>
             </div>
             
-            <div class="timeline-preview">
-                <div class="timeline-waveform" id="waveformContainer">
-                    <div class="cut-marker" id="cutMarkerStart" style="left: 0%;"></div>
-                    <div class="cut-marker" id="cutMarkerEnd" style="left: 100%;"></div>
-                    <div class="cut-handle start" id="startHandle" style="left: 0%;"></div>
-                    <div class="cut-handle end" id="endHandle" style="left: 100%;"></div>
+            <!-- Timeline track -->
+            <div class="timeline-track" id="timelineTrack">
+                <div class="timeline-fill" id="timelineFill" style="left: 0%; width: 100%;"></div>
+                
+                <!-- Start handle -->
+                <div class="timeline-handle start-handle" id="startHandle" style="left: 0%;">
+                    <div class="handle-line"></div>
+                    <div class="handle-circle"></div>
+                </div>
+                
+                <!-- End handle -->
+                <div class="timeline-handle end-handle" id="endHandle" style="left: 100%;">
+                    <div class="handle-line"></div>
+                    <div class="handle-circle"></div>
                 </div>
             </div>
             
-            <div class="time-labels">
-                <span id="timeStart">0:00</span>
-                <span id="timeEnd">0:00</span>
+            <div class="time-display">
+                <span id="startLabel">0:00</span>
+                <span id="endLabel">0:00</span>
             </div>
-            <div class="cut-info">
-                <span>🎬 start: <span id="startTimeDisplay">0.0s</span></span>
-                <span>🏁 end: <span id="endTimeDisplay">0.0s</span></span>
+            
+            <div class="cut-values">
+                <span>start: <span id="startValue">0.0s</span></span>
+                <span>end: <span id="endValue">0.0s</span></span>
             </div>
         </div>
 
         <div class="controls">
-            <button class="record-btn" id="startBtn">🔴 Start recording</button>
+            <button class="record-btn" id="startBtn">🔴 Start Recording</button>
             <button class="stop-btn" id="stopBtn" disabled>⏹️ Stop</button>
-            <button class="download-btn" id="downloadBtn" disabled>💾 Download cut</button>
+            <button class="download-btn" id="downloadBtn" disabled>💾 Download Cut</button>
         </div>
 
         <div class="progress" id="progressContainer">
@@ -408,7 +359,6 @@
         <div class="info-row">
             <span>⏱️ <span id="timer">0:00</span></span>
             <span class="badge" id="status">⏸️ idle</span>
-            <span>⚡ <span id="aspectIndicator">9:16</span></span>
         </div>
     </div>
 
@@ -420,46 +370,38 @@
             const startBtn = document.getElementById('startBtn');
             const stopBtn = document.getElementById('stopBtn');
             const downloadBtn = document.getElementById('downloadBtn');
-            const playPauseBtn = document.getElementById('playPauseBtn');
-            const resetPreviewBtn = document.getElementById('resetPreviewBtn');
+            const playBtn = document.getElementById('playBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const resetBtn = document.getElementById('resetBtn');
             const timerSpan = document.getElementById('timer');
             const statusSpan = document.getElementById('status');
             const countdownOverlay = document.getElementById('countdownOverlay');
-            const previewContainer = document.getElementById('previewContainer');
-            const aspectIndicator = document.getElementById('aspectIndicator');
-            const aspectOptions = document.querySelectorAll('.aspect-option');
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
             
             // Timeline elements
             const timelineSection = document.getElementById('timelineSection');
+            const timelineTrack = document.getElementById('timelineTrack');
             const startHandle = document.getElementById('startHandle');
             const endHandle = document.getElementById('endHandle');
-            const cutMarkerStart = document.getElementById('cutMarkerStart');
-            const cutMarkerEnd = document.getElementById('cutMarkerEnd');
-            const timeStart = document.getElementById('timeStart');
-            const timeEnd = document.getElementById('timeEnd');
-            const startTimeDisplay = document.getElementById('startTimeDisplay');
-            const endTimeDisplay = document.getElementById('endTimeDisplay');
-            const cutLengthDisplay = document.getElementById('cutLengthDisplay');
-            const waveformContainer = document.getElementById('waveformContainer');
+            const timelineFill = document.getElementById('timelineFill');
+            const startLabel = document.getElementById('startLabel');
+            const endLabel = document.getElementById('endLabel');
+            const startValue = document.getElementById('startValue');
+            const endValue = document.getElementById('endValue');
+            const cutRange = document.getElementById('cutRange');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
 
             // State
             let mediaStream = null;
             let mediaRecorder = null;
             let recordedChunks = [];
-            let startTime = 0;
-            let timerInterval = null;
             let recordingStartTime = 0;
-            const CHUNK_INTERVAL = 5000;
-
+            let timerInterval = null;
+            
             // Countdown
             let countdownInterval = null;
             let countdownValue = 5;
             let isCountdownActive = false;
-
-            // Aspect
-            let selectedAspect = 'portrait';
             
             // Video data
             let recordedBlob = null;
@@ -470,53 +412,33 @@
             let cutStart = 0;
             let cutEnd = 1;
             
-            // Dragging state
+            // Dragging
             let activeHandle = null;
-            
-            // Playback state
-            let isPlaying = false;
-            let animationFrame = null;
+            let isDragging = false;
 
-            // UI Updates
-            function updateAspectUI() {
-                if (selectedAspect === 'portrait') {
-                    aspectIndicator.innerText = '9:16';
-                } else {
-                    aspectIndicator.innerText = '16:9';
-                }
-            }
-
-            aspectOptions.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    aspectOptions.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    selectedAspect = btn.dataset.aspect;
-                    updateAspectUI();
-                    if (recordedUrl) {
-                        setupPreviewPlayer();
-                    }
-                });
-            });
-
+            // Format time
             function formatTime(seconds) {
+                if (!seconds || isNaN(seconds)) return '0:00';
                 const mins = Math.floor(seconds / 60);
                 const secs = Math.floor(seconds % 60);
                 return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
             }
 
             function formatSeconds(sec) {
+                if (!sec || isNaN(sec)) return '0.0s';
                 return sec.toFixed(1) + 's';
             }
 
+            // Timer functions
             function updateTimer() {
-                if (!startTime) return;
-                const elapsed = (Date.now() - startTime) / 1000;
+                if (!recordingStartTime) return;
+                const elapsed = (Date.now() - recordingStartTime) / 1000;
                 timerSpan.textContent = formatTime(elapsed);
             }
 
             function startTimer() {
                 stopTimer();
-                startTime = Date.now();
+                recordingStartTime = Date.now();
                 timerSpan.textContent = '0:00';
                 timerInterval = setInterval(updateTimer, 200);
             }
@@ -526,165 +448,8 @@
                     clearInterval(timerInterval);
                     timerInterval = null;
                 }
-                startTime = 0;
+                recordingStartTime = 0;
             }
-
-            function setUiForRecording(recording) {
-                if (recording) {
-                    startBtn.disabled = true;
-                    stopBtn.disabled = false;
-                    downloadBtn.disabled = true;
-                    statusSpan.innerHTML = '🔴 recording';
-                    timelineSection.style.display = 'none';
-                    if (recordedUrl) {
-                        URL.revokeObjectURL(recordedUrl);
-                        recordedUrl = null;
-                    }
-                } else {
-                    startBtn.disabled = false;
-                    stopBtn.disabled = true;
-                    downloadBtn.disabled = recordedChunks.length === 0;
-                    statusSpan.innerHTML = recordedChunks.length ? '⏸️ ready' : '⏹️ idle';
-                    
-                    if (recordedChunks.length > 0) {
-                        setupPreviewPlayer();
-                    }
-                }
-            }
-
-            // Setup preview player with current recording
-            function setupPreviewPlayer() {
-                if (recordedUrl) {
-                    URL.revokeObjectURL(recordedUrl);
-                }
-                
-                recordedBlob = new Blob(recordedChunks, { type: 'video/webm' });
-                recordedUrl = URL.createObjectURL(recordedBlob);
-                playbackVideo.src = recordedUrl;
-                
-                playbackVideo.onloadedmetadata = () => {
-                    videoDuration = playbackVideo.duration;
-                    cutStart = 0;
-                    cutEnd = 1;
-                    
-                    updateCutHandles();
-                    timelineSection.style.display = 'block';
-                    
-                    // Reset playback
-                    playbackVideo.currentTime = 0;
-                    if (isPlaying) {
-                        playbackVideo.pause();
-                        isPlaying = false;
-                        playPauseBtn.innerHTML = '▶️ Play';
-                    }
-                };
-                
-                playbackVideo.load();
-            }
-
-            // Update handle positions and time displays
-            function updateCutHandles() {
-                const startPercent = cutStart * 100;
-                const endPercent = cutEnd * 100;
-                
-                startHandle.style.left = startPercent + '%';
-                endHandle.style.left = endPercent + '%';
-                cutMarkerStart.style.left = startPercent + '%';
-                cutMarkerEnd.style.left = endPercent + '%';
-                
-                if (videoDuration) {
-                    const startSec = cutStart * videoDuration;
-                    const endSec = cutEnd * videoDuration;
-                    
-                    timeStart.innerText = formatTime(startSec);
-                    timeEnd.innerText = formatTime(endSec);
-                    startTimeDisplay.innerText = formatSeconds(startSec);
-                    endTimeDisplay.innerText = formatSeconds(endSec);
-                    cutLengthDisplay.innerText = `${formatTime(startSec)} – ${formatTime(endSec)}`;
-                }
-            }
-
-            // Handle drag
-            function onMouseMove(e) {
-                if (!activeHandle || !videoDuration) return;
-                
-                const rect = waveformContainer.getBoundingClientRect();
-                let x = e.clientX - rect.left;
-                x = Math.max(0, Math.min(rect.width, x));
-                let percent = x / rect.width;
-                
-                if (activeHandle === 'start') {
-                    cutStart = Math.min(percent, cutEnd - 0.01);
-                } else {
-                    cutEnd = Math.max(percent, cutStart + 0.01);
-                }
-                
-                updateCutHandles();
-                
-                // Update video position to show cut start
-                if (playbackVideo) {
-                    playbackVideo.currentTime = cutStart * videoDuration;
-                }
-            }
-
-            function onMouseUp() {
-                activeHandle = null;
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-            }
-
-            // Attach drag listeners
-            startHandle.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                activeHandle = 'start';
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
-            });
-
-            endHandle.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                activeHandle = 'end';
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
-            });
-
-            // Playback controls
-            playPauseBtn.addEventListener('click', () => {
-                if (!playbackVideo) return;
-                
-                if (isPlaying) {
-                    playbackVideo.pause();
-                    playPauseBtn.innerHTML = '▶️ Play';
-                } else {
-                    // If at the end, restart from cut start
-                    if (playbackVideo.currentTime >= cutEnd * videoDuration) {
-                        playbackVideo.currentTime = cutStart * videoDuration;
-                    }
-                    playbackVideo.play();
-                    playPauseBtn.innerHTML = '⏸️ Pause';
-                }
-                isPlaying = !isPlaying;
-            });
-
-            resetPreviewBtn.addEventListener('click', () => {
-                if (!playbackVideo) return;
-                playbackVideo.currentTime = cutStart * videoDuration;
-                if (isPlaying) {
-                    playbackVideo.pause();
-                    isPlaying = false;
-                    playPauseBtn.innerHTML = '▶️ Play';
-                }
-            });
-
-            // Stop at cut end
-            playbackVideo.addEventListener('timeupdate', () => {
-                if (playbackVideo.currentTime >= cutEnd * videoDuration) {
-                    playbackVideo.pause();
-                    playbackVideo.currentTime = cutStart * videoDuration;
-                    isPlaying = false;
-                    playPauseBtn.innerHTML = '▶️ Play';
-                }
-            });
 
             // Stop all tracks
             function stopAllTracks() {
@@ -704,15 +469,158 @@
                 isCountdownActive = false;
             }
 
-            // Start capture
-            async function startScreenAndCountdown() {
+            // Update UI for recording state
+            function setUiForRecording(recording) {
+                if (recording) {
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    downloadBtn.disabled = true;
+                    statusSpan.innerHTML = '🔴 recording';
+                    timelineSection.style.display = 'none';
+                } else {
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    downloadBtn.disabled = recordedChunks.length === 0;
+                    statusSpan.innerHTML = recordedChunks.length ? '⏸️ ready' : '⏹️ idle';
+                    
+                    if (recordedChunks.length > 0) {
+                        loadVideoForPreview();
+                    }
+                }
+            }
+
+            // Load recorded video for preview
+            function loadVideoForPreview() {
+                if (recordedUrl) {
+                    URL.revokeObjectURL(recordedUrl);
+                }
+                
+                recordedBlob = new Blob(recordedChunks, { type: 'video/webm' });
+                recordedUrl = URL.createObjectURL(recordedBlob);
+                playbackVideo.src = recordedUrl;
+                
+                playbackVideo.onloadedmetadata = () => {
+                    videoDuration = playbackVideo.duration;
+                    console.log('Video loaded, duration:', videoDuration);
+                    
+                    // Reset cuts
+                    cutStart = 0;
+                    cutEnd = 1;
+                    
+                    // Update timeline
+                    updateTimeline();
+                    timelineSection.style.display = 'block';
+                    
+                    // Set video to start
+                    playbackVideo.currentTime = 0;
+                };
+                
+                playbackVideo.load();
+            }
+
+            // Update timeline UI
+            function updateTimeline() {
+                if (!videoDuration) return;
+                
+                // Update handle positions
+                startHandle.style.left = (cutStart * 100) + '%';
+                endHandle.style.left = (cutEnd * 100) + '%';
+                
+                // Update fill between handles
+                timelineFill.style.left = (cutStart * 100) + '%';
+                timelineFill.style.width = ((cutEnd - cutStart) * 100) + '%';
+                
+                // Update time labels
+                const startSec = cutStart * videoDuration;
+                const endSec = cutEnd * videoDuration;
+                
+                startLabel.textContent = formatTime(startSec);
+                endLabel.textContent = formatTime(endSec);
+                startValue.textContent = formatSeconds(startSec);
+                endValue.textContent = formatSeconds(endSec);
+                cutRange.textContent = `${formatTime(startSec)} – ${formatTime(endSec)}`;
+            }
+
+            // Handle drag start
+            function startDrag(handle, e) {
+                e.preventDefault();
+                activeHandle = handle;
+                isDragging = true;
+                
+                function onMouseMove(e) {
+                    if (!isDragging || !videoDuration) return;
+                    
+                    const rect = timelineTrack.getBoundingClientRect();
+                    let x = e.clientX - rect.left;
+                    x = Math.max(0, Math.min(rect.width, x));
+                    let percent = x / rect.width;
+                    
+                    if (activeHandle === 'start') {
+                        cutStart = Math.min(percent, cutEnd - 0.01);
+                    } else {
+                        cutEnd = Math.max(percent, cutStart + 0.01);
+                    }
+                    
+                    updateTimeline();
+                }
+                
+                function onMouseUp() {
+                    isDragging = false;
+                    activeHandle = null;
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                }
+                
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            }
+
+            // Attach drag handlers
+            startHandle.addEventListener('mousedown', (e) => startDrag('start', e));
+            endHandle.addEventListener('mousedown', (e) => startDrag('end', e));
+
+            // Playback controls
+            playBtn.addEventListener('click', () => {
+                if (!playbackVideo || !videoDuration) return;
+                
+                // If at or past end, restart from start
+                if (playbackVideo.currentTime >= cutEnd * videoDuration) {
+                    playbackVideo.currentTime = cutStart * videoDuration;
+                }
+                
+                playbackVideo.play().catch(e => console.log('Playback error:', e));
+            });
+
+            pauseBtn.addEventListener('click', () => {
+                if (!playbackVideo) return;
+                playbackVideo.pause();
+            });
+
+            resetBtn.addEventListener('click', () => {
+                if (!playbackVideo) return;
+                playbackVideo.currentTime = cutStart * videoDuration;
+                playbackVideo.pause();
+            });
+
+            // Monitor playback to stop at cut end
+            playbackVideo.addEventListener('timeupdate', () => {
+                if (!videoDuration) return;
+                
+                if (playbackVideo.currentTime >= cutEnd * videoDuration) {
+                    playbackVideo.pause();
+                    playbackVideo.currentTime = cutStart * videoDuration;
+                }
+            });
+
+            // Start recording process
+            async function startRecording() {
                 recordedChunks = [];
                 downloadBtn.disabled = true;
                 stopAllTracks();
                 stopCountdown();
                 progressContainer.style.display = 'none';
                 timelineSection.style.display = 'none';
-
+                
                 if (recordedUrl) {
                     URL.revokeObjectURL(recordedUrl);
                     recordedUrl = null;
@@ -720,15 +628,13 @@
 
                 try {
                     const displayStream = await navigator.mediaDevices.getDisplayMedia({
-                        video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } },
+                        video: true,
                         audio: true,
                     });
 
                     let micStream = null;
                     try {
-                        micStream = await navigator.mediaDevices.getUserMedia({
-                            audio: { echoCancellation: true, noiseSuppression: true }
-                        });
+                        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     } catch (e) {}
 
                     const audioTracks = [];
@@ -736,8 +642,7 @@
                     if (micStream) micStream.getAudioTracks().forEach(t => audioTracks.push(t));
 
                     const videoTrack = displayStream.getVideoTracks()[0];
-                    if (!videoTrack) throw new Error('No video track');
-
+                    
                     const finalStream = audioTracks.length 
                         ? new MediaStream([videoTrack, ...audioTracks])
                         : displayStream;
@@ -746,11 +651,12 @@
                     previewVideo.srcObject = mediaStream;
 
                     videoTrack.onended = () => {
-                        if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+                        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                            mediaRecorder.stop();
+                        }
                         stopAllTracks();
                         stopCountdown();
                         setUiForRecording(false);
-                        statusSpan.innerHTML = '⏹️ sharing stopped';
                     };
 
                     startCountdown();
@@ -779,27 +685,15 @@
 
                     if (countdownValue <= 0) {
                         stopCountdown();
-                        if (!mediaStream) {
-                            statusSpan.innerHTML = '⚠️ no stream';
-                            setUiForRecording(false);
-                            return;
-                        }
-
+                        
                         try {
-                            const mimeTypes = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
-                            let selectedMime = 'video/webm;codecs=vp8,opus';
-                            for (let mt of mimeTypes) {
-                                if (MediaRecorder.isTypeSupported(mt)) { selectedMime = mt; break; }
-                            }
-
                             mediaRecorder = new MediaRecorder(mediaStream, {
-                                mimeType: selectedMime,
+                                mimeType: 'video/webm;codecs=vp8,opus',
                                 videoBitsPerSecond: 25000000,
-                                audioBitsPerSecond: 256000,
                             });
 
                             mediaRecorder.ondataavailable = (e) => {
-                                if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+                                if (e.data.size > 0) recordedChunks.push(e.data);
                             };
 
                             mediaRecorder.onstop = () => {
@@ -807,8 +701,7 @@
                                 setUiForRecording(false);
                             };
 
-                            mediaRecorder.start(CHUNK_INTERVAL);
-                            recordingStartTime = Date.now();
+                            mediaRecorder.start(5000);
                             startTimer();
                             setUiForRecording(true);
                             statusSpan.innerHTML = '🔴 recording';
@@ -829,19 +722,16 @@
                     stopBtn.disabled = true;
                 } else if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                     mediaRecorder.stop();
-                } else {
-                    stopAllTracks();
-                    setUiForRecording(false);
                 }
             }
 
-            // Download with cut applied
-            function downloadWithCut() {
+            // Download with cut
+            function downloadCut() {
                 if (!recordedChunks.length) return;
 
                 progressContainer.style.display = 'block';
                 progressBar.style.width = '0%';
-                statusSpan.innerHTML = '⏳ cutting & processing...';
+                statusSpan.innerHTML = '⏳ processing cut...';
                 downloadBtn.disabled = true;
 
                 const originalBlob = new Blob(recordedChunks, { type: 'video/webm' });
@@ -850,45 +740,27 @@
                 const video = document.createElement('video');
                 video.src = url;
                 video.muted = true;
-                video.crossOrigin = 'anonymous';
-                video.playsInline = true;
                 
                 video.onloadedmetadata = () => {
                     const startSec = cutStart * video.duration;
                     const endSec = cutEnd * video.duration;
                     
-                    // Set canvas dimensions based on aspect
-                    let canvasWidth, canvasHeight;
-                    if (selectedAspect === 'portrait') {
-                        canvasHeight = Math.min(video.videoHeight, 1920);
-                        canvasWidth = Math.round(canvasHeight * 9/16);
-                    } else {
-                        canvasWidth = Math.min(video.videoWidth, 1920);
-                        canvasHeight = Math.round(canvasWidth * 9/16);
-                    }
-                    
-                    if (canvasWidth % 2) canvasWidth += 1;
-                    if (canvasHeight % 2) canvasHeight += 1;
-                    
                     const canvas = document.createElement('canvas');
-                    canvas.width = canvasWidth;
-                    canvas.height = canvasHeight;
-                    const ctx = canvas.getContext('2d', { alpha: false });
-                    ctx.imageSmoothingEnabled = true;
+                    canvas.width = 1080;
+                    canvas.height = 1920;
+                    const ctx = canvas.getContext('2d');
                     
-                    // Audio tracks
+                    const canvasStream = canvas.captureStream(30);
                     const audioStream = video.captureStream();
                     const audioTracks = audioStream.getAudioTracks();
                     
-                    const canvasStream = canvas.captureStream(30);
                     const finalStream = new MediaStream();
                     finalStream.addTrack(canvasStream.getVideoTracks()[0]);
-                    audioTracks.forEach(track => finalStream.addTrack(track));
+                    audioTracks.forEach(t => finalStream.addTrack(t));
                     
                     const finalRecorder = new MediaRecorder(finalStream, {
-                        mimeType: 'video/webm;codecs=vp9,opus',
+                        mimeType: 'video/webm;codecs=vp8,opus',
                         videoBitsPerSecond: 20000000,
-                        audioBitsPerSecond: 256000
                     });
                     
                     const outputChunks = [];
@@ -901,13 +773,13 @@
                         const outputUrl = URL.createObjectURL(outputBlob);
                         const a = document.createElement('a');
                         a.href = outputUrl;
-                        a.download = `cut_${selectedAspect}_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.webm`;
+                        a.download = `cut_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.webm`;
                         a.click();
                         
                         URL.revokeObjectURL(outputUrl);
                         URL.revokeObjectURL(url);
                         progressContainer.style.display = 'none';
-                        statusSpan.innerHTML = '✅ cut download complete';
+                        statusSpan.innerHTML = '✅ download complete';
                         downloadBtn.disabled = false;
                     };
                     
@@ -922,42 +794,29 @@
                             return;
                         }
                         
-                        const progressPercent = ((video.currentTime - startSec) / (endSec - startSec)) * 100;
-                        progressBar.style.width = progressPercent + '%';
+                        const progress = ((video.currentTime - startSec) / (endSec - startSec)) * 100;
+                        progressBar.style.width = progress + '%';
                         
-                        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+                        ctx.clearRect(0, 0, 1080, 1920);
                         
-                        // Calculate crop
                         const vw = video.videoWidth;
                         const vh = video.videoHeight;
-                        const targetAspect = selectedAspect === 'portrait' ? 9/16 : 16/9;
+                        const targetAspect = 9/16;
                         const videoAspect = vw / vh;
                         
                         let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
                         
-                        if (selectedAspect === 'portrait') {
-                            if (videoAspect > targetAspect) {
-                                drawHeight = vh;
-                                drawWidth = vh * targetAspect;
-                                offsetX = (vw - drawWidth) / 2;
-                            } else {
-                                drawWidth = vw;
-                                drawHeight = vw / targetAspect;
-                                offsetY = (vh - drawHeight) / 2;
-                            }
+                        if (videoAspect > targetAspect) {
+                            drawHeight = vh;
+                            drawWidth = vh * targetAspect;
+                            offsetX = (vw - drawWidth) / 2;
                         } else {
-                            if (videoAspect > targetAspect) {
-                                drawHeight = vh;
-                                drawWidth = vh * targetAspect;
-                                offsetX = (vw - drawWidth) / 2;
-                            } else {
-                                drawWidth = vw;
-                                drawHeight = vw / targetAspect;
-                                offsetY = (vh - drawHeight) / 2;
-                            }
+                            drawWidth = vw;
+                            drawHeight = vw / targetAspect;
+                            offsetY = (vh - drawHeight) / 2;
                         }
                         
-                        ctx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight, 0, 0, canvasWidth, canvasHeight);
+                        ctx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight, 0, 0, 1080, 1920);
                         
                         requestAnimationFrame(drawFrame);
                     }
@@ -969,13 +828,12 @@
             }
 
             // Event listeners
-            startBtn.addEventListener('click', startScreenAndCountdown);
+            startBtn.addEventListener('click', startRecording);
             stopBtn.addEventListener('click', stopAction);
-            downloadBtn.addEventListener('click', downloadWithCut);
+            downloadBtn.addEventListener('click', downloadCut);
 
             // Initial UI
             setUiForRecording(false);
-            updateAspectUI();
         })();
     </script>
 </body>
