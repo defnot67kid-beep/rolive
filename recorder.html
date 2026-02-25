@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>9:16 screen recorder · shorts ready</title>
+    <title>9:16 recorder · 5 sec timer</title>
     <style>
         * {
             box-sizing: border-box;
@@ -60,7 +60,7 @@
             border: 2px solid #3f3d52;
             box-shadow: inset 0 0 15px #00000055;
             margin-bottom: 2rem;
-            aspect-ratio: 9 / 16;  /* preview shows exact 9:16 crop */
+            aspect-ratio: 9 / 16;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -69,9 +69,9 @@
         #preview {
             width: 100%;
             height: 100%;
-            object-fit: cover;        /* fills 9:16 container, visually matches output */
+            object-fit: cover;
             background: #171b24;
-            transform: scaleX(-1);     /* mirror for natural feel (optional, remove if you dislike) */
+            transform: scaleX(-1);
             display: block;
             pointer-events: none;
         }
@@ -88,6 +88,31 @@
             border: 1px solid #b58f3a;
             font-weight: 500;
             letter-spacing: 0.3px;
+        }
+        /* timer overlay inside preview */
+        .countdown-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            color: white;
+            font-size: 6rem;
+            font-weight: 800;
+            text-shadow: 0 0 20px gold;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            border-radius: 2rem;
+        }
+        .countdown-overlay.visible {
+            opacity: 1;
         }
         .controls {
             display: flex;
@@ -175,17 +200,18 @@
 </head>
 <body>
     <div class="card">
-        <h1>🎬 9:16 Recorder <span>shorts</span></h1>
-        <div class="sub">▼ preview window — output is scaled to 9:16 (1080x1920)</div>
+        <h1>⏱️ 9:16 Recorder <span>5s timer</span></h1>
+        <div class="sub">▼ countdown before recording · auto‑scaled to shorts</div>
 
-        <!-- 9:16 preview (what you see is what you get, scaled) -->
+        <!-- 9:16 preview with countdown overlay -->
         <div class="preview-container">
             <video id="preview" autoplay playsinline muted></video>
+            <div class="countdown-overlay" id="countdownOverlay">5</div>
             <div class="preview-label">9:16 crop preview</div>
         </div>
 
         <div class="controls">
-            <button class="record-btn" id="startBtn">🔴 Start recording</button>
+            <button class="record-btn" id="startBtn">🔴 Start (5s timer)</button>
             <button class="stop-btn" id="stopBtn" disabled>⏹️ Stop</button>
             <button class="download-btn" id="downloadBtn" disabled>💾 Download short</button>
         </div>
@@ -196,7 +222,7 @@
             <span>⚡ auto 9:16</span>
         </div>
         <div class="footnote">
-            ⬇️ video automatically scaled to 1080x1920 · recorded from screen+mic
+            ⬇️ 5‑second countdown · video scaled to 1080x1920 with original audio
         </div>
     </div>
 
@@ -209,6 +235,7 @@
             const downloadBtn = document.getElementById('downloadBtn');
             const timerSpan = document.getElementById('timer');
             const statusSpan = document.getElementById('status');
+            const countdownOverlay = document.getElementById('countdownOverlay');
 
             // recorder state
             let mediaStream = null;
@@ -217,8 +244,10 @@
             let startTime = 0;
             let timerInterval = null;
 
-            // audio context & processor for clean up (optional, but we keep ref)
-            let audioContext = null;
+            // countdown state
+            let countdownInterval = null;
+            let countdownValue = 5;
+            let isCountingDown = false;
 
             // === helper: format time mm:ss ===
             function formatTime(seconds) {
@@ -248,7 +277,7 @@
                 startTime = 0;
             }
 
-            // === enable/disable UI ===
+            // === enable/disable UI (recording state) ===
             function setUiForRecording(recording) {
                 if (recording) {
                     startBtn.disabled = true;
@@ -258,7 +287,6 @@
                 } else {
                     startBtn.disabled = false;
                     stopBtn.disabled = true;
-                    // download button enabled only if there are recorded chunks
                     downloadBtn.disabled = recordedChunks.length === 0;
                     statusSpan.innerHTML = recordedChunks.length ? '⏸️ stopped · ready' : '⏹️ idle';
                 }
@@ -270,334 +298,258 @@
                     mediaStream.getTracks().forEach(track => track.stop());
                     mediaStream = null;
                 }
-                if (audioContext) {
-                    audioContext.close().catch(() => {});
-                    audioContext = null;
-                }
                 previewVideo.srcObject = null;
             }
 
-            // === START RECORDING ===
-            async function startRecording() {
-                recordedChunks = [];          // clear previous
-                downloadBtn.disabled = true;
+            // === stop countdown (cleanup) ===
+            function stopCountdown() {
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                }
+                countdownOverlay.classList.remove('visible');
+                isCountingDown = false;
+            }
 
+            // === START COUNTDOWN (initiates recording after delay) ===
+            function startCountdown() {
+                if (isCountingDown) return;
+                // clear any previous recorded chunks & disable download
+                recordedChunks = [];
+                downloadBtn.disabled = true;
+                stopCountdown(); // just in case
+
+                countdownValue = 5;
+                countdownOverlay.textContent = countdownValue;
+                countdownOverlay.classList.add('visible');
+                isCountingDown = true;
+                statusSpan.innerHTML = '⏳ get ready...';
+
+                // disable start button during countdown (re‑enable if aborted? but we block stop)
+                startBtn.disabled = true;
+                stopBtn.disabled = false;   // allow abort during countdown
+                // stop button text is "stop" – will cancel countdown and not start recording
+
+                countdownInterval = setInterval(() => {
+                    countdownValue -= 1;
+                    countdownOverlay.textContent = countdownValue;
+
+                    if (countdownValue <= 0) {
+                        stopCountdown();          // hide overlay, clear interval
+                        // actually begin recording
+                        beginRecordingAfterCountdown();
+                    }
+                }, 1000);
+            }
+
+            // === called when countdown finishes ===
+            async function beginRecordingAfterCountdown() {
+                // ensure we are not in countdown mode
+                stopCountdown();
+                // but we might have been aborted by stop button – check flag
+                if (!mediaStream) { 
+                    // if no stream acquired yet, we need to get it now.
+                    // we must acquire display stream inside this function.
+                }
                 try {
-                    // get screen + audio (mic + system audio optional)
-                    // we request display media first (with audio if system audio available)
+                    // get screen with audio
                     const displayStream = await navigator.mediaDevices.getDisplayMedia({
-                        video: {
-                            displaySurface: "monitor", // whole screen usually
-                        },
-                        audio: true,   // attempt to capture system audio (may be unavailable)
+                        video: true,
+                        audio: true,
                     });
 
-                    // also request microphone (separately)
+                    // optional mic
                     let micStream = null;
                     try {
                         micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     } catch (e) {
-                        console.warn('Microphone not available or denied, continuing without mic');
-                        // micStream remains null
+                        console.warn('No mic, continuing');
                     }
 
-                    // combine audio tracks: we want both system audio (if any) and mic
                     const audioTracks = [];
-
-                    // check if displayStream has audio tracks (system audio)
-                    displayStream.getAudioTracks().forEach(track => audioTracks.push(track));
-
-                    // add mic tracks if we have them
+                    displayStream.getAudioTracks().forEach(t => audioTracks.push(t));
                     if (micStream) {
-                        micStream.getAudioTracks().forEach(track => audioTracks.push(track));
+                        micStream.getAudioTracks().forEach(t => audioTracks.push(t));
                     }
 
-                    // create a single MediaStream for video (from display) + combined audio
                     let finalStream;
-                    if (audioTracks.length > 0) {
-                        // we need to create a new MediaStream that includes video from display + all audio tracks
-                        const videoTrack = displayStream.getVideoTracks()[0];
-                        if (!videoTrack) throw new Error('No video track from screen capture');
+                    const videoTrack = displayStream.getVideoTracks()[0];
+                    if (!videoTrack) throw new Error('No video track');
+                    
+                    if (audioTracks.length) {
                         finalStream = new MediaStream([videoTrack, ...audioTracks]);
                     } else {
-                        // fallback: only video, no audio
                         finalStream = displayStream;
                     }
 
                     mediaStream = finalStream;
-
-                    // show preview (preview element is set to 9:16 cover, but we just show the raw stream)
                     previewVideo.srcObject = mediaStream;
 
-                    // Set up MediaRecorder with high bitrate and 9:16 aware – but we will do scaling in post
-                    // we record original dimensions (usually 16:9 or screen ratio). later we scale canvas to 9:16
+                    // set up recorder
                     mediaRecorder = new MediaRecorder(mediaStream, {
                         mimeType: 'video/webm;codecs=vp8,opus',
-                        videoBitsPerSecond: 4000000,  // decent quality
+                        videoBitsPerSecond: 4000000,
                     });
 
-                    mediaRecorder.ondataavailable = (event) => {
-                        if (event.data.size > 0) recordedChunks.push(event.data);
+                    mediaRecorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) recordedChunks.push(e.data);
                     };
 
                     mediaRecorder.onstop = () => {
                         stopTimer();
                         setUiForRecording(false);
-                        // we do NOT stop tracks yet, but allow preview to freeze (optional)
-                        // preview will freeze on last frame because stream still alive? we can stop tracks later.
-                        // But we want to keep preview for user? better stop tracks after download or manual stop.
-                        // we stop tracks only when user clicks start again or explicitly, but let's keep it until new recording.
-                        // However to avoid confusion, we can stop tracks only when starting new recording.
-                        // For now leave preview paused? the stream remains active.
-                        // We'll stop tracks right before new recording starts.
+                        // don't stop tracks – keep preview
                     };
 
                     mediaRecorder.start();
                     startTimer();
                     setUiForRecording(true);
 
-                    // If user stops sharing via browser UI (stop button in chrome), we need to handle it
+                    // if user stops sharing via browser UI
                     displayStream.getVideoTracks()[0].onended = () => {
-                        // screen capture stopped by user
                         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                             mediaRecorder.stop();
-                            stopAllTracks();  // clean mic etc.
+                            stopAllTracks();
                             setUiForRecording(false);
+                            stopCountdown();
                         }
                     };
 
                 } catch (err) {
                     console.error('Recording failed:', err);
-                    statusSpan.innerHTML = '⚠️ error / permission denied';
+                    statusSpan.innerHTML = '⚠️ error / denied';
                     stopAllTracks();
                     setUiForRecording(false);
+                    stopCountdown();
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
                 }
             }
 
-            // === STOP RECORDING ===
-            function stopRecording() {
+            // === STOP RECORDING (or abort countdown) ===
+            function stopRecordingOrAbort() {
+                if (isCountingDown) {
+                    // abort countdown, revert to idle
+                    stopCountdown();
+                    statusSpan.innerHTML = '⏸️ idle';
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    countdownOverlay.classList.remove('visible');
+                    // also clean any potential leftover (no stream yet)
+                    return;
+                }
+
+                // normal recording stop
                 if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                     mediaRecorder.stop();
                 }
-                // we do NOT stop tracks immediately to keep preview frozen? 
-                // but we want to allow new recording, so we can stop tracks later at start.
-                // For best UX, we stop them, otherwise next startRecording will stop them anyway.
-                // But preview will go black. To avoid black, we can keep until next recording.
-                // However if user stops and doesn't record again, they might see frozen stream. 
-                // Let's keep tracks alive (preview frozen automatically when no new frames). but it's fine.
-                // But if user tries to record again, we will stop all tracks in startRecording.
-                // We'll not stop here to allow preview remain (maybe useful). 
-                // However the browser screen capture bubble might remain, but it's okay.
+                // we don't stop tracks, keep preview
             }
 
-            // === scale recording to 9:16 (1080x1920) and download ===
+            // === SCALE AND DOWNLOAD (9:16 with audio) ===
             function scaleAndDownload() {
                 if (recordedChunks.length === 0) return;
 
                 const blob = new Blob(recordedChunks, { type: 'video/webm' });
                 const url = URL.createObjectURL(blob);
-                const videoEl = document.createElement('video');
-                videoEl.src = url;
-                videoEl.muted = true;   // to autoplay for processing
-                videoEl.crossOrigin = 'anonymous';
+                const hiddenVideo = document.createElement('video');
+                hiddenVideo.src = url;
+                hiddenVideo.muted = false;
+                hiddenVideo.crossOrigin = 'anonymous';
+                hiddenVideo.playsInline = true;
 
-                videoEl.onloadedmetadata = () => {
-                    // target dimensions: 9:16 (1080 width, 1920 height)
-                    const targetWidth = 1080;
-                    const targetHeight = 1920;
+                hiddenVideo.onloadedmetadata = async () => {
+                    try {
+                        await hiddenVideo.play();
 
-                    // create canvas and context
-                    const canvas = document.createElement('canvas');
-                    canvas.width = targetWidth;
-                    canvas.height = targetHeight;
-                    const ctx = canvas.getContext('2d');
+                        // get original audio+video stream from hidden video
+                        const originalStream = hiddenVideo.captureStream();
+                        const originalAudioTracks = originalStream.getAudioTracks();
 
-                    // set up MediaRecorder to capture canvas as stream
-                    const canvasStream = canvas.captureStream(30); // 30 fps
-                    // we also need to copy audio tracks? we have original audio in recordedChunks.
-                    // but we are re-encoding, audio is lost if we only process video.
-                    // to keep audio, we need to mix later, but for simplicity we create new audio from original?
-                    // Better: use original blob's audio + re-encode video. But too complex.
-                    // We'll use MediaStream with audio from original? we can extract audio with separate AudioContext,
-                    // but that's heavy. For simplicity, we create new audio-less video (or we can preserve audio using 
-                    // pipeline: load blob in HTMLMediaElement and capture with canvas + original audio via separate recorder).
-                    // 
-                    // Instead: we create a MediaRecorder that records canvas + we also grab audio from original blob?
-                    // Too complex for this demo. 
-                    // Workaround: we use the original audio by using the blob as source in an HTMLVideoElement,
-                    // then use canvas to capture only video, but also use AudioContext to capture audio? 
-                    // We'll adopt simpler: record canvas with audio from original via createMediaStreamDestination?
-                    // But the easier path: create a new MediaRecorder that uses canvas + we extract audio from original blob 
-                    // using AudioContext? but that's out of scope.
-                    // For the purpose of "auto scale to 9:16", we will combine video + audio using the brilliant
-                    // approach: draw video frame by frame onto canvas, and simultaneously play original audio,
-                    // record both via canvas.captureStream() and the original audio stream? 
-                    // We can grab audio from original video element using captureStream()? But video element 
-                    // from blob does not have a captureStream method in all browsers? Actually HTMLVideoElement has 
-                    // captureStream() in chrome! Yes we can call videoEl.captureStream() to get audio+video track.
-                    // But then we would be recording from that stream with re-encoded video? hmm.
+                        // canvas for 9:16 scaling
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 1080;
+                        canvas.height = 1920;
+                        const ctx = canvas.getContext('2d');
 
-                    // Let's make a clean solution: we create a new MediaStream from canvas (video) + 
-                    // we extract audio from the original blob via a second audio element? But syncing becomes nightmare.
+                        const canvasStream = canvas.captureStream(30);
+                        const canvasVideoTrack = canvasStream.getVideoTracks()[0];
 
-                    // For demonstration and simplicity (and within scope), we will output a 9:16 video WITHOUT audio.
-                    // That's not ideal, but many simple screen recorders do that. To include audio, we would need a more complex pipeline.
-                    // I want to deliver a fully functional script, so I'll implement proper audio retention via 
-                    // using MediaRecorder on canvas stream and simultaneously piping original audio through AudioContext.
-                    // But that is more robust with a library. However I aim for "simple" html. 
+                        // build final stream with canvas video + original audio
+                        const finalStream = new MediaStream();
+                        finalStream.addTrack(canvasVideoTrack);
+                        originalAudioTracks.forEach(track => finalStream.addTrack(track));
 
-                    // Let's do a better approach: create a new MediaRecorder that records a combined stream:
-                    // canvasStream (video) + original audio track from a separate <audio> element? 
-                    // We can extract audio from original recorded blob by creating an AudioContext and playing blob,
-                    // then using createMediaStreamDestination. But timing offset will drift.
+                        const finalRecorder = new MediaRecorder(finalStream, {
+                            mimeType: 'video/webm;codecs=vp8,opus',
+                            videoBitsPerSecond: 4000000
+                        });
+                        const scaledChunks = [];
+                        finalRecorder.ondataavailable = (e) => scaledChunks.push(e.data);
+                        finalRecorder.onstop = () => {
+                            const finalBlob = new Blob(scaledChunks, { type: 'video/webm' });
+                            const finalUrl = URL.createObjectURL(finalBlob);
+                            const a = document.createElement('a');
+                            a.href = finalUrl;
+                            a.download = `shorts_9_16_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.webm`;
+                            a.click();
+                            URL.revokeObjectURL(finalUrl);
+                            statusSpan.innerHTML = '✅ download ready (9:16)';
+                        };
 
-                    // Given the complexity, I'll provide a fallback that outputs a canvas-only scaled video (silent) 
-                    // but I will add a note. But the user expects full audio. So I must solve it.
-
-                    // Another simpler way: use the recorded blob as source, but we want to scale the video to 9:16,
-                    // we can create a WebCodec pipeline? too advanced.
-
-                    // Wait — I have an idea: Use two video elements, one for audio, one for video? 
-                    // Or we can use the `processedStream` from canvas and also get audio from the original MediaStream?
-                    // But the original MediaStream is already stopped maybe.
-
-                    // I'll rework: Instead of stopping tracks, we can use the existing mediaStream (if available) for audio,
-                    // but that would be only if user hasn't started new recording. This is getting too tangled.
-
-                    // I'll go with reliable approach: we create a new MediaRecorder that records canvas (video) and also
-                    // we capture the original audio by playing the blob in a separate audio context? not real-time.
-
-                    // I think the correct solution is to use the `MediaRecorder` with canvas stream, and also
-                    // copy audio from original blob into that recording via creating a new AudioBuffer? That's too heavy.
-
-                    // For this exercise, I will deliver a version that keeps the original audio by NOT re-encoding video,
-                    // but we need to scale to 9:16 without losing audio. The only way without external libs is:
-                    // we can create a <canvas> and draw video with cropping to 9:16 and simultaneously play original 
-                    // recorded video in a hidden video element, capture both using canvas.captureStream and 
-                    // a new AudioContext that captures the audio from the hidden video element? 
-                    // HTMLVideoElement has an audio track via captureStream? Yes: videoEl.captureStream() returns
-                    // MediaStream with both video and audio. But if we capture from videoEl, we get original video 
-                    // (non-scaled). We can then feed that stream through a canvas filter? Not trivial.
-
-                    // At this point, due to time, I will output a scaled video (9:16) that preserves audio 
-                    // by using the original audio from the recorded blob AND scaled video via canvas transform 
-                    // using the 'canvas-capture' pattern: 
-                    // - create a hidden video element that plays the recorded blob
-                    // - create a canvas that draws scaled/cropped video to 9:16
-                    // - create a MediaStream from canvas (video only)
-                    // - get the audio tracks from the hidden video element's captureStream()
-                    // - combine both into a new MediaStream, then record.
-
-                    // This works because videoEl.captureStream() gives us the original audio track (intact) 
-                    // and also video, but we discard the video track and replace with canvas video track.
-                    // Let's implement that.
-
-                    const hiddenVideo = document.createElement('video');
-                    hiddenVideo.src = url;
-                    hiddenVideo.muted = false;  // we need audio, but playback won't be audible if muted
-                    hiddenVideo.crossOrigin = 'anonymous';
-                    hiddenVideo.loop = false;
-                    hiddenVideo.autoplay = true;
-                    hiddenVideo.playsInline = true;
-
-                    hiddenVideo.onloadedmetadata = async () => {
-                        try {
-                            await hiddenVideo.play();
-
-                            // get combined stream from hidden video (includes audio + original video)
-                            const videoStream = hiddenVideo.captureStream(); 
-                            const originalAudioTracks = videoStream.getAudioTracks();
-
-                            // set canvas dimensions to 9:16
-                            canvas.width = targetWidth;
-                            canvas.height = targetHeight;
-
-                            // get canvas video track
-                            const canvasStream = canvas.captureStream(30);
-                            const canvasVideoTrack = canvasStream.getVideoTracks()[0];
-
-                            // build final stream: canvas video track + original audio tracks
-                            const finalStream = new MediaStream();
-                            finalStream.addTrack(canvasVideoTrack);
-                            for (let track of originalAudioTracks) {
-                                finalStream.addTrack(track);
-                            }
-
-                            // record final stream
-                            const finalRecorder = new MediaRecorder(finalStream, {
-                                mimeType: 'video/webm;codecs=vp8,opus',
-                                videoBitsPerSecond: 4000000
-                            });
-                            const scaledChunks = [];
-                            finalRecorder.ondataavailable = (e) => scaledChunks.push(e.data);
-                            finalRecorder.onstop = () => {
-                                const finalBlob = new Blob(scaledChunks, { type: 'video/webm' });
-                                const finalUrl = URL.createObjectURL(finalBlob);
-                                const a = document.createElement('a');
-                                a.href = finalUrl;
-                                a.download = `shorts_9_16_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.webm`;
-                                a.click();
-                                URL.revokeObjectURL(finalUrl);
-                                statusSpan.innerHTML = '✅ download ready (scaled 9:16)';
-                            };
-
-                            // start drawing frames
-                            function drawFrame() {
-                                if (hiddenVideo.paused || hiddenVideo.ended) {
-                                    finalRecorder.stop();
-                                    cancelAnimationFrame(frameReq);
-                                    return;
-                                }
-                                ctx.clearRect(0, 0, targetWidth, targetHeight);
-                                // draw video to fill 9:16, cropping left/right if needed (preserve center)
-                                const videoAspect = hiddenVideo.videoWidth / hiddenVideo.videoHeight;
-                                const targetAspect = targetWidth / targetHeight; // 9/16 = 0.5625
-                                let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
-                                if (videoAspect > targetAspect) {
-                                    // video wider than 9:16 -> crop left/right
-                                    drawHeight = hiddenVideo.videoHeight;
-                                    drawWidth = hiddenVideo.videoHeight * targetAspect;
-                                    offsetX = (hiddenVideo.videoWidth - drawWidth) / 2;
-                                } else {
-                                    // video taller -> crop top/bottom (rare for screen)
-                                    drawWidth = hiddenVideo.videoWidth;
-                                    drawHeight = hiddenVideo.videoWidth / targetAspect;
-                                    offsetY = (hiddenVideo.videoHeight - drawHeight) / 2;
-                                }
-                                ctx.drawImage(hiddenVideo, offsetX, offsetY, drawWidth, drawHeight, 0, 0, targetWidth, targetHeight);
-                                frameReq = requestAnimationFrame(drawFrame);
-                            }
-
-                            let frameReq = requestAnimationFrame(drawFrame);
-                            finalRecorder.start();
-
-                            // stop recording when video ends
-                            hiddenVideo.onended = () => {
-                                if (finalRecorder.state !== 'inactive') finalRecorder.stop();
+                        function drawFrame() {
+                            if (hiddenVideo.paused || hiddenVideo.ended) {
+                                finalRecorder.stop();
                                 cancelAnimationFrame(frameReq);
-                            };
-                        } catch (e) {
-                            console.error('Scaling error:', e);
-                            alert('Scaling failed, but original recording is preserved. Try downloading raw?');
+                                return;
+                            }
+                            ctx.clearRect(0, 0, 1080, 1920);
+                            // crop to 9:16 (center)
+                            const videoAspect = hiddenVideo.videoWidth / hiddenVideo.videoHeight;
+                            const targetAspect = 9/16; // 0.5625
+                            let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
+                            if (videoAspect > targetAspect) {
+                                drawHeight = hiddenVideo.videoHeight;
+                                drawWidth = hiddenVideo.videoHeight * targetAspect;
+                                offsetX = (hiddenVideo.videoWidth - drawWidth) / 2;
+                            } else {
+                                drawWidth = hiddenVideo.videoWidth;
+                                drawHeight = hiddenVideo.videoWidth / targetAspect;
+                                offsetY = (hiddenVideo.videoHeight - drawHeight) / 2;
+                            }
+                            ctx.drawImage(hiddenVideo, offsetX, offsetY, drawWidth, drawHeight, 0, 0, 1080, 1920);
+                            frameReq = requestAnimationFrame(drawFrame);
                         }
-                    };
-                };
 
-                videoEl.load();
+                        let frameReq = requestAnimationFrame(drawFrame);
+                        finalRecorder.start();
+
+                        hiddenVideo.onended = () => {
+                            if (finalRecorder.state !== 'inactive') finalRecorder.stop();
+                            cancelAnimationFrame(frameReq);
+                        };
+                    } catch (e) {
+                        alert('Scaling error, but original recording is safe.');
+                        console.error(e);
+                    }
+                };
+                hiddenVideo.play(); // trigger load
             }
 
             // wire buttons
             startBtn.addEventListener('click', () => {
-                // stop any previous stream
+                // stop any previous stream & clean
                 stopAllTracks();
                 recordedChunks = [];
-                startRecording();
+                stopCountdown();
+                // start countdown (UI). stream acquisition will happen after countdown
+                startCountdown();
             });
 
             stopBtn.addEventListener('click', () => {
-                stopRecording();
-                // we don't stop tracks, but we can stop them? keep for preview.
-                // but timer stopped in onstop
+                stopRecordingOrAbort();
+                // if we were counting down, the above handles it.
+                // if recording, stops recorder.
             });
 
             downloadBtn.addEventListener('click', () => {
