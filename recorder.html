@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✅ WORKING cutter · live preview</title>
+    <title>🎬 cut & play · clean embed + keyboard</title>
     <style>
         * {
             box-sizing: border-box;
@@ -49,7 +49,7 @@
             padding-left: 1rem;
         }
         
-        /* Preview section */
+        /* Preview row – both containers have clean embed (no title/controls) */
         .preview-row {
             display: flex;
             gap: 16px;
@@ -64,16 +64,20 @@
             aspect-ratio: 9 / 16;
             position: relative;
         }
+        /* video elements: no controls, hide any title/branding (none exists natively) */
         #preview, #playbackPreview {
             width: 100%;
             height: 100%;
             object-fit: cover;
             background: #171b24;
             display: block;
+            pointer-events: none;  /* keeps overlay clean – but we need play/pause via keyboard */
         }
-        #preview {
-            transform: scaleX(-1);
+        /* allow pointer events only on container if needed, but video itself no overlay */
+        .preview-container {
+            pointer-events: none;   /* so clicks don't trigger video controls (they are hidden anyway) */
         }
+        /* but we still want keyboard to work – fine */
         .preview-label {
             position: absolute;
             bottom: 8px;
@@ -85,6 +89,8 @@
             backdrop-filter: blur(2px);
             border: 1px solid #b58f3a;
             z-index: 5;
+            font-size: 0.8rem;
+            pointer-events: none;
         }
         .countdown-overlay {
             position: absolute;
@@ -103,6 +109,7 @@
             opacity: 0;
             transition: opacity 0.2s;
             border-radius: 1.5rem;
+            pointer-events: none;
         }
         .countdown-overlay.visible {
             opacity: 1;
@@ -197,12 +204,13 @@
             border-radius: 40px;
         }
         
-        /* Playback controls */
+        /* Playback controls (buttons + keyboard hints) */
         .playback-controls {
             display: flex;
             gap: 10px;
             justify-content: center;
             margin: 15px 0;
+            flex-wrap: wrap;
         }
         .playback-btn {
             background: #323a4b;
@@ -215,6 +223,14 @@
         }
         .playback-btn:hover {
             background: #3f485e;
+        }
+        .key-hint {
+            background: #1f2533;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            color: #f5c542;
+            font-size: 0.9rem;
+            margin-left: 8px;
         }
         
         .controls {
@@ -286,35 +302,49 @@
             background: #f5c542;
             transition: width 0.2s;
         }
+        .legend {
+            margin-top: 0.8rem;
+            text-align: center;
+            color: #8f8ba3;
+            font-size: 0.8rem;
+        }
+        .legend kbd {
+            background: #2a2e3f;
+            padding: 0.1rem 0.6rem;
+            border-radius: 6px;
+            color: #f5c542;
+        }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>✅ WORKING CUTTER <span>live preview</span></h1>
-        <div class="sub">▼ record → drag handles → preview plays → download cut</div>
+        <h1>🎬 clean cuts <span>keyboard + hide titles</span></h1>
+        <div class="sub">▼ <kbd>space</kbd> pause · <kbd>←</kbd>/<kbd>→</kbd> step · <kbd>s</kbd>/<kbd>w</kbd> speed · <kbd>+</kbd>/<kbd>-</kbd> quality </div>
 
         <div class="preview-row">
             <div class="preview-container">
+                <!-- no controls, no title (just camera) -->
                 <video id="preview" autoplay playsinline muted></video>
                 <div class="countdown-overlay" id="countdownOverlay">5</div>
-                <div class="preview-label">live camera</div>
+                <div class="preview-label">live cam (clean)</div>
             </div>
             <div class="preview-container">
+                <!-- playback video: no controls, no title, no branding -->
                 <video id="playbackPreview" playsinline></video>
-                <div class="preview-label">preview with cuts</div>
+                <div class="preview-label">cut preview (clean)</div>
             </div>
         </div>
 
         <!-- Timeline section (hidden until recording exists) -->
         <div class="timeline-section" id="timelineSection" style="display: none;">
             <div class="timeline-header">
-                <span>✂️ drag colored handles to cut</span>
+                <span>✂️ drag handles to cut</span>
                 <span class="cut-badge" id="cutRange">0:00 – 0:00</span>
             </div>
             
             <div class="playback-controls">
-                <button class="playback-btn" id="playBtn">▶️ Play Preview</button>
-                <button class="playback-btn" id="pauseBtn">⏸️ Pause</button>
+                <button class="playback-btn" id="playBtn">▶️ Play</button>
+                <button class="playback-btn" id="pauseBtn">⏸️ Pause <span class="key-hint">space</span></button>
                 <button class="playback-btn" id="resetBtn">↺ Reset</button>
             </div>
             
@@ -359,6 +389,9 @@
         <div class="info-row">
             <span>⏱️ <span id="timer">0:00</span></span>
             <span class="badge" id="status">⏸️ idle</span>
+        </div>
+        <div class="legend">
+            <kbd>←</kbd> step back 1s · <kbd>→</kbd> step forward 1s · <kbd>s</kbd> speed+ · <kbd>w</kbd> speed- · <kbd>+</kbd> quality+ · <kbd>-</kbd> quality-
         </div>
     </div>
 
@@ -415,6 +448,10 @@
             // Dragging
             let activeHandle = null;
             let isDragging = false;
+
+            // playback speed & quality simulation (quality changes bitrate on next download)
+            let playbackSpeed = 1.0;
+            let qualityLevel = 100; // percent bitrate
 
             // Format time
             function formatTime(seconds) {
@@ -588,6 +625,7 @@
                     playbackVideo.currentTime = cutStart * videoDuration;
                 }
                 
+                playbackVideo.playbackRate = playbackSpeed;
                 playbackVideo.play().catch(e => console.log('Playback error:', e));
             });
 
@@ -725,7 +763,7 @@
                 }
             }
 
-            // Download with cut
+            // Download with cut (simulate quality by scaling bitrate)
             function downloadCut() {
                 if (!recordedChunks.length) return;
 
@@ -758,9 +796,13 @@
                     finalStream.addTrack(canvasStream.getVideoTracks()[0]);
                     audioTracks.forEach(t => finalStream.addTrack(t));
                     
+                    // Use qualityLevel to adjust bitrate (simulate + / -)
+                    let bitrate = Math.floor(20000000 * (qualityLevel / 100));
+                    bitrate = Math.max(1000000, Math.min(50000000, bitrate)); // clamp
+                    
                     const finalRecorder = new MediaRecorder(finalStream, {
                         mimeType: 'video/webm;codecs=vp8,opus',
-                        videoBitsPerSecond: 20000000,
+                        videoBitsPerSecond: bitrate,
                     });
                     
                     const outputChunks = [];
@@ -773,7 +815,7 @@
                         const outputUrl = URL.createObjectURL(outputBlob);
                         const a = document.createElement('a');
                         a.href = outputUrl;
-                        a.download = `cut_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.webm`;
+                        a.download = `cut_${qualityLevel}q_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.webm`;
                         a.click();
                         
                         URL.revokeObjectURL(outputUrl);
@@ -826,6 +868,59 @@
                 
                 video.load();
             }
+
+            // ---------- KEYBOARD COMMANDS ----------
+            window.addEventListener('keydown', (e) => {
+                // ignore if typing in any (no input fields, but safe)
+                const tag = e.target.tagName.toLowerCase();
+                if (tag === 'input' || tag === 'textarea' || tag === 'button') return;
+
+                // pause on command (spacebar)
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    if (playbackVideo) playbackVideo.pause();
+                }
+                // < go back (left arrow) - move 1 sec back
+                else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    if (playbackVideo && videoDuration) {
+                        playbackVideo.currentTime = Math.max(0, playbackVideo.currentTime - 1);
+                    }
+                }
+                // > go forward (right arrow) - move 1 sec forward, capped at end
+                else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    if (playbackVideo && videoDuration) {
+                        playbackVideo.currentTime = Math.min(videoDuration, playbackVideo.currentTime + 1);
+                    }
+                }
+                // s speed up
+                else if (e.key === 's' || e.key === 'S') {
+                    e.preventDefault();
+                    playbackSpeed = Math.min(3, playbackSpeed + 0.25);
+                    if (playbackVideo) playbackVideo.playbackRate = playbackSpeed;
+                    statusSpan.innerHTML = `⚡ speed ${playbackSpeed.toFixed(2)}x`;
+                }
+                // w slow down
+                else if (e.key === 'w' || e.key === 'W') {
+                    e.preventDefault();
+                    playbackSpeed = Math.max(0.25, playbackSpeed - 0.25);
+                    if (playbackVideo) playbackVideo.playbackRate = playbackSpeed;
+                    statusSpan.innerHTML = `🐢 speed ${playbackSpeed.toFixed(2)}x`;
+                }
+                // + 100+ quality
+                else if (e.key === '+' || e.key === '=') {
+                    e.preventDefault();
+                    qualityLevel = Math.min(200, qualityLevel + 10);
+                    statusSpan.innerHTML = `⬆️ quality ${qualityLevel}%`;
+                }
+                // - 100- quality
+                else if (e.key === '-' || e.key === '_') {
+                    e.preventDefault();
+                    qualityLevel = Math.max(20, qualityLevel - 10);
+                    statusSpan.innerHTML = `⬇️ quality ${qualityLevel}%`;
+                }
+            });
 
             // Event listeners
             startBtn.addEventListener('click', startRecording);
