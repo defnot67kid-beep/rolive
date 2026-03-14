@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Live Duper - 100x Clone with Google Sign-In</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #ff4444;
+            --primary-dark: #cc3333;
+            --primary-light: #ff8888;
+            --secondary: #ff6b6b;
+            --dark: #0a0a0a;
+            --darker: #000000;
+            --dark-card: #1a1a1a;
+            --text: #ffffff;
+            --text-dim: #cccccc;
+            --text-dimmer: #999999;
+            --border: rgba(255, 68, 68, 0.3);
+            --border-hover: rgba(255, 68, 68, 0.6);
+            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 30px rgba(255, 68, 68, 0.5);
+            --gradient-primary: linear-gradient(135deg, #ff4444, #ff8888);
+            --glass-effect: rgba(255, 68, 68, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        #mainContainer {
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        /* Navbar */
+        .navbar {
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: relative;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+            text-shadow: var(--shadow-glow);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 20px;
+            background: rgba(255, 68, 68, 0.1);
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-info:hover {
+            border-color: var(--primary);
+            background: rgba(255, 68, 68, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            object-fit: cover;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 68, 68, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 68, 68, 0.6);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #666, #444);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #ff4444, #cc3333);
+            transform: translateY(-3px);
+        }
+
+        .btn-google {
+            background: white;
+            color: #444;
+            border: 2px solid #ddd;
+        }
+
+        .btn-google:hover {
+            background: #f5f5f5;
+            border-color: #ff4444;
+            transform: translateY(-3px);
+        }
+
+        /* Auth Container */
+        .auth-container {
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 40px;
+            border: 2px solid var(--border);
+            max-width: 450px;
+            margin: 50px auto;
+            box-shadow: var(--shadow-lg);
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-radius: 50px;
+            background: var(--darker);
+            padding: 5px;
+            border: 1px solid var(--border);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-dim);
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .auth-tab.active {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .auth-form {
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-dim);
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px;
+            background: var(--darker);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 15px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(255, 68, 68, 0.2);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: var(--text-dim);
+            margin: 20px 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .divider span {
+            padding: 0 10px;
+        }
+        
+        .control-panel {
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+            border-radius: 30px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px solid var(--border);
+            box-shadow: 0 0 30px rgba(255, 68, 68, 0.3);
+            max-width: 800px;
+            margin: 0 auto 30px auto;
+        }
+        
+        .control-panel h1 {
+            color: white;
+            font-size: 36px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .control-panel h1 span {
+            color: #ff4444;
+            text-shadow: 0 0 20px #ff4444;
+        }
+        
+        .live-badge {
+            display: inline-block;
+            background: #ff4444;
+            color: white;
+            padding: 8px 25px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+            text-align: center;
+            width: 100%;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.8; box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
+            50% { opacity: 1; box-shadow: 0 0 30px 10px rgba(255, 68, 68, 0.4); }
+            100% { opacity: 0.8; box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            color: #aaa;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        #liveLink {
+            width: 100%;
+            padding: 18px 20px;
+            background: #333;
+            border: 2px solid #ff4444;
+            border-radius: 50px;
+            color: white;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+        
+        #liveLink:focus {
+            outline: none;
+            border-color: #ff8888;
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
+        }
+        
+        .slider-container {
+            background: #222;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .slider-container label {
+            color: white;
+            font-size: 18px;
+            display: block;
+            margin-bottom: 15px;
+        }
+        
+        #duplicateCount {
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            background: #333;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        #duplicateCount::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #ff4444;
+            cursor: pointer;
+            box-shadow: 0 0 15px #ff4444;
+        }
+        
+        .count-display {
+            display: flex;
+            justify-content: space-between;
+            color: #ff4444;
+            margin-top: 10px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .lag-toggle {
+            background: #222;
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .lag-toggle label {
+            color: white;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .lag-toggle input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #ff4444;
+        }
+        
+        .lag-badge {
+            background: #00ff88;
+            color: black;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .start-btn {
+            flex: 2;
+            padding: 18px;
+            background: linear-gradient(45deg, #ff4444, #ff8888);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .start-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px #ff4444;
+        }
+        
+        .start-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .stop-btn {
+            flex: 1;
+            padding: 18px;
+            background: #333;
+            border: 2px solid #666;
+            border-radius: 50px;
+            color: #aaa;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .stop-btn:hover:not(:disabled) {
+            background: #444;
+            border-color: #ff4444;
+            color: white;
+        }
+        
+        .stop-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .stats-panel {
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #333;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            color: white;
+            font-size: 16px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff4444;
+            display: block;
+        }
+        
+        .stat-label {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .lag-warning {
+            background: rgba(255, 68, 68, 0.2);
+            border-left: 4px solid #ff4444;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 10px;
+            color: #ff8888;
+            display: none;
+        }
+        
+        .lag-warning.show {
+            display: block;
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        #gridContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 10px;
+            padding: 10px;
+            background: #0a0a0a;
+            min-height: 200px;
+        }
+        
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            background: #000;
+            border-radius: 8px;
+            border: 2px solid #ff4444;
+            transition: all 0.3s;
+        }
+        
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            pointer-events: none;
+        }
+        
+        .video-wrapper.loading::before {
+            content: "Loading Live...";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff4444;
+            font-size: 14px;
+            z-index: 1;
+        }
+        
+        .video-index {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: rgba(255, 68, 68, 0.9);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 50px;
+            font-size: 12px;
+            z-index: 10;
+            font-weight: bold;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+        }
+        
+        .loading-overlay.show {
+            display: flex;
+        }
+        
+        .spinner {
+            width: 80px;
+            height: 80px;
+            border: 5px solid #333;
+            border-top: 5px solid #ff4444;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .loading-subtext {
+            color: #888;
+            font-size: 16px;
+        }
+        
+        .example-link {
+            color: #ff8888;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+        
+        .example-link:hover {
+            background: #333;
+            color: #ff4444;
+        }
+        
+        .help-text {
+            color: #666;
+            font-size: 12px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 999999;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            padding: 40px;
+            border-radius: 24px;
+            max-width: 500px;
+            width: 90%;
+            border: 2px solid var(--border);
+            animation: slideInUp 0.4s ease;
+        }
+
+        .modal-content h2 {
+            color: white;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .modal-content h2 i {
+            color: var(--primary);
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #1a1a1a;
+            border-left: 4px solid var(--primary);
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 999999;
+            animation: slideInRight 0.3s ease;
+            border: 1px solid var(--border);
+        }
+
+        .notification.success {
+            border-left-color: #00ff88;
+        }
+
+        .notification.error {
+            border-left-color: #ff4444;
+        }
+
+        .notification i {
+            font-size: 20px;
+        }
+
+        .notification.success i {
+            color: #00ff88;
+        }
+
+        .notification.error i {
+            color: #ff4444;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="mainContainer">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <div class="logo" onclick="window.location.hash=''">🔴 Live Duper 100x</div>
+            <div class="nav-buttons" id="navButtons"></div>
+        </nav>
+
+        <!-- Main Content -->
+        <div id="mainContent"></div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <h2><i class="fas fa-video"></i> Sign in to Live Duper</h2>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchAuthTab('login')">Login</div>
+                <div class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</div>
+            </div>
+
+            <div id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="loginEmail" placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password">
+                </div>
+                <button class="btn btn-primary" style="width: 100%;" onclick="loginWithEmail()">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+                
+                <button class="btn btn-google" style="width: 100%;" onclick="loginWithGoogle()">
+                    <i class="fab fa-google"></i> Continue with Google
+                </button>
+            </div>
+
+            <div id="signupForm" class="auth-form" style="display: none;">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Name</label>
+                    <input type="text" id="signupName" placeholder="Your full name">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="signupEmail" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="signupPassword" placeholder="Create a password (min. 6 characters)">
+                </div>
+                <button class="btn btn-primary" style="width: 100%;" onclick="signupWithEmail()">
+                    <i class="fas fa-user-plus"></i> Sign Up
+                </button>
+                
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+                
+                <button class="btn btn-google" style="width: 100%;" onclick="loginWithGoogle()">
+                    <i class="fab fa-google"></i> Sign up with Google
+                </button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <small style="color: #666;">
+                    By signing in, you agree to our Terms of Service
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAupBkllyicDPD9O6CmX4mS4sF5z96mqxc",
+            authDomain: "vertexpaste.firebaseapp.com",
+            projectId: "vertexpaste",
+            storageBucket: "vertexpaste.firebasestorage.app",
+            messagingSenderId: "255275350380",
+            appId: "1:255275350380:web:7be4e8add2cb5b04045b49"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // Configure Google Provider
+        const googleProvider = new GoogleAuthProvider();
+        googleProvider.setCustomParameters({
+            client_id: "572074212370-k56l9us4reqog2m61b9ni53lcg60ktne.apps.googleusercontent.com"
+        });
+
+        // ============ APP STATE ============
+        let currentUser = null;
+        let isDuplicating = false;
+        let activeVideos = 0;
+        let totalVideos = 0;
+        let currentFPS = 60;
+        let videoElements = [];
+
+        // DOM Elements
+        const authModal = document.getElementById('authModal');
+        const mainContent = document.getElementById('mainContent');
+        const navButtons = document.getElementById('navButtons');
+
+        // ============ AUTH FUNCTIONS ============
+        window.showAuth = function() {
+            authModal.classList.add('active');
+        };
+
+        window.closeAuth = function() {
+            authModal.classList.remove('active');
+        };
+
+        window.switchAuthTab = function(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.style.display = 'none');
+            
+            if (tab === 'login') {
+                document.querySelectorAll('.auth-tab')[0].classList.add('active');
+                document.getElementById('loginForm').style.display = 'block';
+            } else {
+                document.querySelectorAll('.auth-tab')[1].classList.add('active');
+                document.getElementById('signupForm').style.display = 'block';
+            }
+        };
+
+        window.signupWithEmail = async function() {
+            const name = document.getElementById('signupName')?.value;
+            const email = document.getElementById('signupEmail')?.value;
+            const password = document.getElementById('signupPassword')?.value;
+
+            if (!email || !password || !name) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showNotification('Password must be at least 6 characters', 'error');
+                return;
+            }
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(userCredential.user, {
+                    displayName: name
+                });
+                
+                // Create user document in Firestore
+                await setDoc(doc(db, 'users', userCredential.user.uid), {
+                    displayName: name,
+                    email: email,
+                    createdAt: new Date().toISOString(),
+                    lastLogin: new Date().toISOString()
+                });
+                
+                showNotification('Account created successfully!', 'success');
+                closeAuth();
+            } catch (error) {
+                showNotification(getUserFriendlyError(error), 'error');
+            }
+        };
+
+        window.loginWithEmail = async function() {
+            const email = document.getElementById('loginEmail')?.value;
+            const password = document.getElementById('loginPassword')?.value;
+
+            if (!email || !password) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                
+                // Update last login
+                if (auth.currentUser) {
+                    await setDoc(doc(db, 'users', auth.currentUser.uid), {
+                        lastLogin: new Date().toISOString()
+                    }, { merge: true });
+                }
+                
+                showNotification('Login successful!', 'success');
+                closeAuth();
+            } catch (error) {
+                showNotification(getUserFriendlyError(error), 'error');
+            }
+        };
+
+        window.loginWithGoogle = async function() {
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                
+                // Create/update user document in Firestore
+                await setDoc(doc(db, 'users', result.user.uid), {
+                    displayName: result.user.displayName,
+                    email: result.user.email,
+                    avatar: result.user.photoURL,
+                    lastLogin: new Date().toISOString()
+                }, { merge: true });
+                
+                showNotification('Login successful with Google!', 'success');
+                closeAuth();
+            } catch (error) {
+                console.error('Google Sign-In Error:', error);
+                
+                if (error.code === 'auth/unauthorized-domain') {
+                    showNotification('This domain is not authorized. Please add it to Firebase console.', 'error');
+                } else if (error.code === 'auth/popup-blocked') {
+                    showNotification('Pop-up blocked. Please allow pop-ups for this site.', 'error');
+                } else {
+                    showNotification(getUserFriendlyError(error), 'error');
+                }
+            }
+        };
+
+        window.logout = async function() {
+            try {
+                await signOut(auth);
+                window.location.hash = '';
+                showNotification('Logged out successfully', 'success');
+                showLiveDuper();
+            } catch (error) {
+                showNotification(getUserFriendlyError(error), 'error');
+            }
+        };
+
+        function getUserFriendlyError(error) {
+            const errorCode = error.code;
+            
+            switch(errorCode) {
+                case 'auth/email-already-in-use':
+                    return 'This email is already registered. Please login instead.';
+                case 'auth/invalid-email':
+                    return 'Please enter a valid email address.';
+                case 'auth/weak-password':
+                    return 'Password should be at least 6 characters.';
+                case 'auth/wrong-password':
+                    return 'Incorrect password. Please try again.';
+                case 'auth/user-not-found':
+                    return 'No account found with this email.';
+                case 'auth/popup-closed-by-user':
+                    return 'Sign-in cancelled. Please try again.';
+                default:
+                    return 'An error occurred. Please try again.';
+            }
+        }
+
+        // ============ UPDATE NAVBAR ============
+        function updateNavbar() {
+            if (currentUser) {
+                const initial = (currentUser.displayName || 'U').charAt(0).toUpperCase();
+                const avatarUrl = currentUser.photoURL || currentUser.avatar;
+                
+                navButtons.innerHTML = `
+                    <div class="user-info" onclick="window.location.hash='#profile'">
+                        ${avatarUrl ? 
+                            `<img src="${avatarUrl}" class="user-avatar" style="object-fit: cover;">` : 
+                            `<div class="user-avatar">${initial}</div>`
+                        }
+                        <span>${currentUser.displayName || 'User'}</span>
+                    </div>
+                    <button class="btn btn-danger" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                `;
+            } else {
+                navButtons.innerHTML = `
+                    <button class="btn btn-primary" onclick="showAuth()">
+                        <i class="fas fa-sign-in-alt"></i> Sign in with Google
+                    </button>
+                `;
+            }
+        }
+
+        // ============ AUTH STATE OBSERVER ============
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Get additional user data from Firestore
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (userDoc.exists()) {
+                        currentUser = {
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: userDoc.data().displayName || user.displayName,
+                            photoURL: userDoc.data().avatar || user.photoURL,
+                            ...userDoc.data()
+                        };
+                    } else {
+                        currentUser = {
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: user.displayName,
+                            photoURL: user.photoURL
+                        };
+                    }
+                } catch (error) {
+                    console.error('Error getting user data:', error);
+                    currentUser = {
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName,
+                        photoURL: user.photoURL
+                    };
+                }
+            } else {
+                currentUser = null;
+            }
+            
+            updateNavbar();
+            handleRouting();
+        });
+
+        // ============ ROUTING ============
+        function handleRouting() {
+            const hash = window.location.hash;
+            
+            if (hash === '#profile' && currentUser) {
+                showProfile();
+            } else {
+                showLiveDuper();
+            }
+        }
+
+        window.addEventListener('hashchange', handleRouting);
+
+        // ============ SHOW LIVE DUPER ============
+        function showLiveDuper() {
+            mainContent.innerHTML = `
+                <div class="control-panel">
+                    <h1>🔴 <span>LIVE DUPER</span> 100x</h1>
+                    <div class="live-badge">⚠️ WARNING: 100 DUPLICATIONS WILL CAUSE LAG ⚠️</div>
+                    
+                    <div class="input-group">
+                        <label>📺 YouTube Live Link</label>
+                        <input type="text" id="liveLink" placeholder="Paste YouTube Live URL here... (e.g., https://www.youtube.com/watch?v=...)">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>📊 Number of Duplications (Max 100)</label>
+                        <input type="range" id="duplicateCount" min="1" max="100" value="10">
+                        <div class="count-display">
+                            <span>🔴 1</span>
+                            <span id="countValue">10</span>
+                            <span>🔴 100</span>
+                        </div>
+                    </div>
+                    
+                    <div class="lag-toggle">
+                        <label>
+                            <input type="checkbox" id="lagProtection" checked> 🛡️ Enable Lag Protection (Auto-stop if PC struggles)
+                        </label>
+                        <span class="lag-badge">LAG DETECTOR ACTIVE</span>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="start-btn" id="startBtn" onclick="startDuplication()">🚀 START DUPLICATION</button>
+                        <button class="stop-btn" id="stopBtn" onclick="stopDuplication()" disabled>⏹️ STOP</button>
+                    </div>
+                    
+                    <div class="stats-panel">
+                        <div class="stats">
+                            <div class="stat-item">
+                                <span class="stat-value" id="activeCount">0</span>
+                                <span class="stat-label">ACTIVE</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="totalCount">0</span>
+                                <span class="stat-label">TOTAL</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="fpsCounter">60</span>
+                                <span class="stat-label">FPS</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="lag-warning" id="lagWarning">
+                        ⚠️ LAG DETECTED! Duplication stopped automatically to prevent PC crash.
+                    </div>
+                    
+                    <div style="margin-top: 15px; color: #666; font-size: 14px;">
+                        <p>📋 Test Links (click to use):</p>
+                        <span class="example-link" onclick="useExample('https://www.youtube.com/watch?v=21X5lGlDOfg')">🔴 NASA Live</span> | 
+                        <span class="example-link" onclick="useExample('https://www.youtube.com/watch?v=5qap5aO4i9A')">🌍 Earth from Space</span> | 
+                        <span class="example-link" onclick="useExample('https://www.youtube.com/watch?v=xqYgeZQU35k')">🎮 Live Gaming</span>
+                    </div>
+                    
+                    <div class="help-text">
+                        ⚡ All videos will auto-play after cloning • Press STOP to clear all • Lag protection monitors FPS
+                    </div>
+                </div>
+                
+                <div id="gridContainer"></div>
+            `;
+
+            // Re-attach event listeners
+            document.getElementById('duplicateCount').addEventListener('input', function() {
+                document.getElementById('countValue').textContent = this.value;
+            });
+
+            // Start FPS monitoring
+            startFPSMonitoring();
+        }
+
+        // ============ SHOW PROFILE ============
+        function showProfile() {
+            if (!currentUser) {
+                window.location.hash = '';
+                return;
+            }
+
+            mainContent.innerHTML = `
+                <div class="control-panel" style="max-width: 600px;">
+                    <h1>👤 <span>Your Profile</span></h1>
+                    
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        ${currentUser.photoURL ? 
+                            `<img src="${currentUser.photoURL}" style="width: 100px; height: 100px; border-radius: 50%; border: 4px solid #ff4444;">` : 
+                            `<div style="width: 100px; height: 100px; border-radius: 50%; background: #ff4444; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 40px; font-weight: bold;">${(currentUser.displayName || 'U').charAt(0).toUpperCase()}</div>`
+                        }
+                        <h2 style="margin-top: 15px;">${escapeHtml(currentUser.displayName || 'User')}</h2>
+                        <p style="color: #888;">${escapeHtml(currentUser.email || '')}</p>
+                    </div>
+                    
+                    <div class="stats-panel">
+                        <div class="stats">
+                            <div class="stat-item">
+                                <span class="stat-value">${currentUser.createdAt ? new Date(currentUser.createdAt).toLocaleDateString() : 'N/A'}</span>
+                                <span class="stat-label">MEMBER SINCE</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">${currentUser.lastLogin ? new Date(currentUser.lastLogin).toLocaleDateString() : 'Today'}</span>
+                                <span class="stat-label">LAST LOGIN</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; margin-top: 20px;">
+                        <button class="start-btn" onclick="window.location.hash=''">
+                            <i class="fas fa-video"></i> Back to Live Duper
+                        </button>
+                        <button class="stop-btn" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============ LIVE DUPER FUNCTIONS ============
+        let fpsInterval = null;
+        let lastFrameTime = performance.now();
+        let frames = 0;
+
+        function startFPSMonitoring() {
+            if (fpsInterval) {
+                cancelAnimationFrame(fpsInterval);
+            }
+            
+            function updateFPS() {
+                frames++;
+                const now = performance.now();
+                const delta = now - lastFrameTime;
+                
+                if (delta >= 1000) {
+                    currentFPS = frames;
+                    const fpsElement = document.getElementById('fpsCounter');
+                    if (fpsElement) {
+                        fpsElement.textContent = Math.min(60, frames);
+                    }
+                    frames = 0;
+                    lastFrameTime = now;
+                    
+                    // Check for lag
+                    const lagProtection = document.getElementById('lagProtection');
+                    if (lagProtection && lagProtection.checked && isDuplicating && currentFPS < 30) {
+                        showLagWarning();
+                        stopDuplication();
+                    }
+                }
+                
+                fpsInterval = requestAnimationFrame(updateFPS);
+            }
+            
+            fpsInterval = requestAnimationFrame(updateFPS);
+        }
+
+        function showLagWarning() {
+            const warning = document.getElementById('lagWarning');
+            if (warning) {
+                warning.classList.add('show');
+                setTimeout(() => {
+                    warning.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        // Extract YouTube video ID
+        function extractYouTubeId(url) {
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/|youtube\.com\/live\/)([^&?#]+)/,
+                /youtube\.com\/watch\?.*[?&]v=([^&?#]+)/,
+                /youtube\.com\/live\/([^&?#]+)/
+            ];
+            
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match) return match[1];
+            }
+            
+            return null;
+        }
+
+        window.useExample = function(url) {
+            const input = document.getElementById('liveLink');
+            if (input) input.value = url;
+        };
+
+        function createVideoEmbed(videoId, index) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'video-wrapper loading';
+            
+            const indexSpan = document.createElement('span');
+            indexSpan.className = 'video-index';
+            indexSpan.textContent = `#${index + 1}`;
+            wrapper.appendChild(indexSpan);
+            
+            const iframe = document.createElement('iframe');
+            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&controls=0&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&playsinline=1&rel=0&showinfo=0&enablejsapi=1&loop=1&playlist=${videoId}`;
+            iframe.allow = "autoplay; fullscreen";
+            iframe.setAttribute('allowfullscreen', 'false');
+            
+            wrapper.appendChild(iframe);
+            
+            iframe.onload = () => {
+                wrapper.classList.remove('loading');
+                activeVideos++;
+                const activeElement = document.getElementById('activeCount');
+                if (activeElement) activeElement.textContent = activeVideos;
+            };
+            
+            return wrapper;
+        }
+
+        window.startDuplication = function() {
+            if (!currentUser) {
+                showNotification('Please sign in to use Live Duper', 'error');
+                showAuth();
+                return;
+            }
+
+            const link = document.getElementById('liveLink')?.value.trim();
+            if (!link) {
+                showNotification('Please enter a YouTube Live link!', 'error');
+                return;
+            }
+            
+            const videoId = extractYouTubeId(link);
+            if (!videoId) {
+                showNotification('Invalid YouTube URL! Please enter a valid YouTube link.', 'error');
+                return;
+            }
+            
+            const count = parseInt(document.getElementById('duplicateCount')?.value || '10');
+            
+            // Clear previous videos
+            const gridContainer = document.getElementById('gridContainer');
+            if (gridContainer) {
+                gridContainer.innerHTML = '';
+            }
+            
+            activeVideos = 0;
+            totalVideos = 0;
+            videoElements = [];
+            
+            // Create loading overlay
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'loading-overlay';
+            loadingOverlay.id = 'loadingOverlay';
+            loadingOverlay.innerHTML = `
+                <div class="spinner"></div>
+                <div class="loading-text">Cloning Live Stream ${count} times...</div>
+                <div class="loading-subtext" id="loadingSubtext">0/${count} duplicated</div>
+            `;
+            document.body.appendChild(loadingOverlay);
+            
+            // Disable start button, enable stop button
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            if (startBtn) startBtn.disabled = true;
+            if (stopBtn) stopBtn.disabled = false;
+            isDuplicating = true;
+            
+            // Create videos with delay to prevent freeze
+            let created = 0;
+            
+            function createNextVideo() {
+                if (!isDuplicating || created >= count) {
+                    if (created >= count) {
+                        const overlay = document.getElementById('loadingOverlay');
+                        if (overlay) overlay.remove();
+                    }
+                    return;
+                }
+                
+                const wrapper = createVideoEmbed(videoId, created);
+                if (gridContainer) {
+                    gridContainer.appendChild(wrapper);
+                }
+                videoElements.push(wrapper);
+                
+                created++;
+                totalVideos = created;
+                const totalElement = document.getElementById('totalCount');
+                if (totalElement) totalElement.textContent = totalVideos;
+                
+                const loadingSubtext = document.getElementById('loadingSubtext');
+                if (loadingSubtext) loadingSubtext.textContent = `${created}/${count} duplicated`;
+                
+                if (created < count) {
+                    // Check for lag before creating next
+                    const lagProtection = document.getElementById('lagProtection');
+                    if (lagProtection && lagProtection.checked && currentFPS < 30) {
+                        showLagWarning();
+                        stopDuplication();
+                        return;
+                    }
+                    
+                    // Dynamic delay based on count
+                    const delay = count > 50 ? 200 : 100;
+                    setTimeout(createNextVideo, delay);
+                } else {
+                    // Done creating
+                    setTimeout(() => {
+                        const overlay = document.getElementById('loadingOverlay');
+                        if (overlay) overlay.remove();
+                    }, 500);
+                }
+            }
+            
+            // Show loading overlay and start creating
+            setTimeout(createNextVideo, 100);
+        };
+
+        window.stopDuplication = function() {
+            isDuplicating = false;
+            
+            // Clear all videos
+            const gridContainer = document.getElementById('gridContainer');
+            if (gridContainer) {
+                gridContainer.innerHTML = '';
+            }
+            videoElements = [];
+            
+            // Reset counters
+            activeVideos = 0;
+            totalVideos = 0;
+            const activeElement = document.getElementById('activeCount');
+            const totalElement = document.getElementById('totalCount');
+            if (activeElement) activeElement.textContent = '0';
+            if (totalElement) totalElement.textContent = '0';
+            
+            // Remove loading overlay
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.remove();
+            
+            // Reset buttons
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            if (startBtn) startBtn.disabled = false;
+            if (stopBtn) stopBtn.disabled = true;
+        };
+
+        // ============ UTILITY FUNCTIONS ============
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            if (event.target === authModal) {
+                closeAuth();
+            }
+        };
+
+        // ============ INITIALIZE ============
+        // Show live duper by default
+        showLiveDuper();
+
+        // Make functions available globally
+        window.showAuth = showAuth;
+        window.closeAuth = closeAuth;
+        window.switchAuthTab = switchAuthTab;
+        window.signupWithEmail = signupWithEmail;
+        window.loginWithEmail = loginWithEmail;
+        window.loginWithGoogle = loginWithGoogle;
+        window.logout = logout;
+        window.startDuplication = startDuplication;
+        window.stopDuplication = stopDuplication;
+        window.useExample = useExample;
+    </script>
+</body>
+</html>
