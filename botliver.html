@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Live Duper - 100x Clone with Google Sign-In</title>
+    <title>YouTube Live Duper - Opens in New Tabs</title>
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
@@ -74,6 +74,14 @@
             letter-spacing: 2px;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+            color: #ff4444;
         }
 
         .logo:hover {
@@ -119,6 +127,29 @@
             object-fit: cover;
         }
         
+        .youtube-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ff0000;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+            border: 2px solid #ff6666;
+        }
+        
+        .youtube-badge i {
+            font-size: 18px;
+        }
+        
+        .youtube-badge.verified {
+            background: #00ff88;
+            color: black;
+            border-color: #00ff88;
+        }
+        
         /* Buttons */
         .btn {
             padding: 12px 24px;
@@ -157,6 +188,18 @@
             transform: translateY(-3px);
         }
 
+        .btn-youtube {
+            background: #ff0000;
+            color: white;
+            border: 2px solid #ff6666;
+        }
+
+        .btn-youtube:hover {
+            background: #cc0000;
+            transform: translateY(-3px);
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+        }
+
         .btn-google {
             background: white;
             color: #444;
@@ -166,6 +209,18 @@
         .btn-google:hover {
             background: #f5f5f5;
             border-color: #ff4444;
+            transform: translateY(-3px);
+        }
+
+        .btn-tab {
+            background: #333;
+            color: #ff8888;
+            border: 2px solid #ff4444;
+        }
+
+        .btn-tab:hover {
+            background: #ff4444;
+            color: white;
             transform: translateY(-3px);
         }
 
@@ -180,6 +235,26 @@
             margin: 50px auto;
             box-shadow: var(--shadow-lg);
             animation: fadeInUp 0.6s ease;
+        }
+
+        .youtube-auth-container {
+            background: linear-gradient(135deg, #1a1a1a, #2a1a1a);
+            border: 2px solid #ff0000;
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.3);
+        }
+
+        .youtube-icon {
+            font-size: 60px;
+            color: #ff0000;
+            text-align: center;
+            margin-bottom: 20px;
+            animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { transform: scale(1); text-shadow: 0 0 0 rgba(255, 0, 0, 0.7); }
+            50% { transform: scale(1.1); text-shadow: 0 0 30px rgba(255, 0, 0, 0.9); }
+            100% { transform: scale(1); text-shadow: 0 0 0 rgba(255, 0, 0, 0.7); }
         }
 
         .auth-tabs {
@@ -207,6 +282,16 @@
             color: white;
         }
 
+        .auth-tab.youtube-tab {
+            background: rgba(255, 0, 0, 0.1);
+            color: #ff6666;
+        }
+
+        .auth-tab.youtube-tab.active {
+            background: #ff0000;
+            color: white;
+        }
+
         .auth-form {
             margin-top: 20px;
         }
@@ -222,7 +307,7 @@
             font-weight: 500;
         }
 
-        .form-group input {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 14px 18px;
             background: var(--darker);
@@ -233,10 +318,24 @@
             transition: all 0.3s ease;
         }
 
-        .form-group input:focus {
+        .form-group select option {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        .form-group input:focus, .form-group select:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 4px rgba(255, 68, 68, 0.2);
+        }
+
+        .youtube-input {
+            border-color: #ff0000 !important;
+            background: #2a1a1a !important;
+        }
+
+        .youtube-input:focus {
+            box-shadow: 0 0 0 4px rgba(255, 0, 0, 0.2) !important;
         }
 
         .divider {
@@ -293,6 +392,28 @@
             animation: pulse 2s infinite;
             text-align: center;
             width: 100%;
+        }
+        
+        .new-tab-badge {
+            background: #4CAF50;
+            font-size: 16px;
+            margin-bottom: 30px;
+            border: 2px solid #8bc34a;
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% { opacity: 0.8; box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            50% { opacity: 1; box-shadow: 0 0 30px 10px rgba(76, 175, 80, 0.4); }
+            100% { opacity: 0.8; box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+        }
+        
+        .youtube-required-badge {
+            background: #ff0000;
+            font-size: 20px;
+            padding: 15px;
+            margin-bottom: 30px;
+            border: 2px solid #ff6666;
         }
         
         @keyframes pulse {
@@ -370,6 +491,43 @@
             font-size: 20px;
             font-weight: bold;
         }
+        
+        .tab-mode-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: #222;
+            padding: 15px;
+            border-radius: 15px;
+        }
+        
+        .tab-mode-option {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .tab-mode-option:hover {
+            background: rgba(255, 68, 68, 0.1);
+        }
+        
+        .tab-mode-option.selected {
+            border-color: #ff4444;
+            background: rgba(255, 68, 68, 0.2);
+        }
+        
+        .tab-mode-option i {
+            font-size: 24px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .tab-mode-option.single-tab i { color: #ff4444; }
+        .tab-mode-option.new-tab i { color: #4CAF50; }
         
         .lag-toggle {
             background: #222;
@@ -490,6 +648,30 @@
             font-size: 14px;
         }
         
+        .tab-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #333;
+        }
+        
+        .tab-stat {
+            text-align: center;
+        }
+        
+        .tab-stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .tab-stat-label {
+            color: #888;
+            font-size: 12px;
+        }
+        
         .lag-warning {
             background: rgba(255, 68, 68, 0.2);
             border-left: 4px solid #ff4444;
@@ -511,102 +693,86 @@
             75% { transform: translateX(10px); }
         }
         
-        #gridContainer {
+        #openedTabsContainer {
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 30px;
+            border: 1px solid #333;
+        }
+        
+        .tabs-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
             padding: 10px;
-            background: #0a0a0a;
-            min-height: 200px;
         }
         
-        .video-wrapper {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            overflow: hidden;
-            background: #000;
+        .tab-card {
+            background: #222;
+            border-left: 4px solid #4CAF50;
             border-radius: 8px;
-            border: 2px solid #ff4444;
-            transition: all 0.3s;
+            padding: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
         
-        .video-wrapper iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-            pointer-events: none;
+        .tab-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
         }
         
-        .video-wrapper.loading::before {
-            content: "Loading Live...";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #ff4444;
-            font-size: 14px;
-            z-index: 1;
-        }
-        
-        .video-index {
-            position: absolute;
-            top: 5px;
-            left: 5px;
-            background: rgba(255, 68, 68, 0.9);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 50px;
-            font-size: 12px;
-            z-index: 10;
-            font-weight: bold;
-        }
-        
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            flex-direction: column;
-        }
-        
-        .loading-overlay.show {
+        .tab-card-header {
             display: flex;
-        }
-        
-        .spinner {
-            width: 80px;
-            height: 80px;
-            border: 5px solid #333;
-            border-top: 5px solid #ff4444;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .loading-text {
-            color: white;
-            font-size: 24px;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 10px;
         }
         
-        .loading-subtext {
+        .tab-card-title {
+            font-weight: bold;
+            color: white;
+        }
+        
+        .tab-card-number {
+            background: #4CAF50;
+            color: black;
+            padding: 2px 8px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .tab-card-url {
             color: #888;
-            font-size: 16px;
+            font-size: 12px;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+        
+        .tab-card-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .tab-card-btn {
+            flex: 1;
+            padding: 5px;
+            background: #333;
+            border: none;
+            border-radius: 5px;
+            color: #ccc;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab-card-btn:hover {
+            background: #4CAF50;
+            color: black;
         }
         
         .example-link {
@@ -637,7 +803,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(10px);
             z-index: 999999;
             align-items: center;
@@ -667,6 +833,38 @@
 
         .modal-content h2 i {
             color: var(--primary);
+        }
+
+        .youtube-modal {
+            border: 3px solid #ff0000;
+            background: #2a1a1a;
+        }
+
+        .verification-status {
+            background: #222;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .verification-status i {
+            font-size: 48px;
+            color: #ff0000;
+            margin-bottom: 15px;
+        }
+
+        .verification-status .verified {
+            color: #00ff88;
+        }
+
+        .verification-status h3 {
+            margin-bottom: 10px;
+        }
+
+        .verification-status p {
+            color: #888;
+            font-size: 14px;
         }
 
         @keyframes slideInUp {
@@ -744,354 +942,498 @@
                 transform: translateX(0);
             }
         }
+
+        /* Cookie Consent */
+        .cookie-consent {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: #1a1a1a;
+            border: 2px solid #ff4444;
+            border-radius: 12px;
+            padding: 20px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 9999;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .cookie-consent.show {
+            display: flex;
+        }
+
+        .cookie-consent p {
+            color: white;
+            flex: 1;
+            margin-right: 20px;
+        }
+
+        .cookie-consent button {
+            padding: 10px 30px;
+            background: #ff4444;
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .cookie-consent button:hover {
+            background: #cc3333;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
     <div id="mainContainer">
         <!-- Navbar -->
         <nav class="navbar">
-            <div class="logo" onclick="window.location.hash=''">🔴 Live Duper 100x</div>
+            <div class="logo" onclick="window.location.hash=''">
+                <i class="fab fa-youtube"></i> Live Duper 100x
+            </div>
             <div class="nav-buttons" id="navButtons"></div>
         </nav>
 
         <!-- Main Content -->
         <div id="mainContent"></div>
+        
+        <!-- Opened Tabs Container (will be shown when using new tab mode) -->
+        <div id="openedTabsContainer" style="display: none;">
+            <h3 style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-window-restore" style="color: #4CAF50;"></i> 
+                Opened Tabs (<span id="openedTabsCount">0</span>/<span id="totalTabsToOpen">0</span>)
+                <button class="btn btn-danger" style="margin-left: auto; padding: 8px 15px;" onclick="closeAllTabs()">
+                    <i class="fas fa-times"></i> Close All Tabs
+                </button>
+            </h3>
+            <div id="tabsGrid" class="tabs-grid"></div>
+        </div>
     </div>
 
-    <!-- Auth Modal -->
-    <div id="authModal" class="modal">
-        <div class="modal-content">
-            <h2><i class="fas fa-video"></i> Sign in to Live Duper</h2>
+    <!-- YouTube Sign-in Modal (MANDATORY) -->
+    <div id="youtubeAuthModal" class="modal">
+        <div class="modal-content youtube-modal">
+            <div class="youtube-icon">
+                <i class="fab fa-youtube"></i>
+            </div>
+            <h2><span style="color: #ff0000;">YouTube</span> Sign-in Required</h2>
+            <p style="color: #ccc; text-align: center; margin-bottom: 30px;">
+                You MUST sign in with YouTube to use the Live Duper. This verifies you're a real user and prevents abuse.
+            </p>
             
             <div class="auth-tabs">
-                <div class="auth-tab active" onclick="switchAuthTab('login')">Login</div>
-                <div class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</div>
+                <div class="auth-tab youtube-tab active" onclick="switchYouTubeTab('signin')">Sign In</div>
+                <div class="auth-tab youtube-tab" onclick="switchYouTubeTab('verify')">Verify</div>
             </div>
 
-            <div id="loginForm" class="auth-form">
+            <div id="youtubeSigninForm" class="auth-form">
                 <div class="form-group">
-                    <label><i class="fas fa-envelope"></i> Email</label>
-                    <input type="email" id="loginEmail" placeholder="Enter your email">
+                    <label><i class="fab fa-google"></i> Google Account (for YouTube)</label>
+                    <input type="email" id="youtubeEmail" class="youtube-input" placeholder="Enter your Google/YouTube email">
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-lock"></i> Password</label>
-                    <input type="password" id="loginPassword" placeholder="Enter your password">
+                    <input type="password" id="youtubePassword" class="youtube-input" placeholder="Enter your password">
                 </div>
-                <button class="btn btn-primary" style="width: 100%;" onclick="loginWithEmail()">
-                    <i class="fas fa-sign-in-alt"></i> Login
+                <button class="btn btn-youtube" style="width: 100%;" onclick="signInToYouTube()">
+                    <i class="fab fa-youtube"></i> Sign in with YouTube
                 </button>
                 
                 <div class="divider">
                     <span>OR</span>
                 </div>
                 
-                <button class="btn btn-google" style="width: 100%;" onclick="loginWithGoogle()">
-                    <i class="fab fa-google"></i> Continue with Google
+                <button class="btn btn-google" style="width: 100%;" onclick="signInWithGoogleForYouTube()">
+                    <i class="fab fa-google"></i> Sign in with Google (YouTube)
                 </button>
+                
+                <p style="color: #666; font-size: 12px; text-align: center; margin-top: 20px;">
+                    <i class="fas fa-info-circle"></i> Your credentials are never stored. This verifies you own a YouTube account.
+                </p>
             </div>
 
-            <div id="signupForm" class="auth-form" style="display: none;">
-                <div class="form-group">
-                    <label><i class="fas fa-user"></i> Name</label>
-                    <input type="text" id="signupName" placeholder="Your full name">
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-envelope"></i> Email</label>
-                    <input type="email" id="signupEmail" placeholder="your@email.com">
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-lock"></i> Password</label>
-                    <input type="password" id="signupPassword" placeholder="Create a password (min. 6 characters)">
-                </div>
-                <button class="btn btn-primary" style="width: 100%;" onclick="signupWithEmail()">
-                    <i class="fas fa-user-plus"></i> Sign Up
-                </button>
-                
-                <div class="divider">
-                    <span>OR</span>
+            <div id="youtubeVerifyForm" class="auth-form" style="display: none;">
+                <div class="verification-status">
+                    <i class="fas fa-youtube" id="verifyIcon"></i>
+                    <h3 id="verifyTitle">Not Verified</h3>
+                    <p id="verifyText">You haven't signed in with YouTube yet. Please sign in first.</p>
                 </div>
                 
-                <button class="btn btn-google" style="width: 100%;" onclick="loginWithGoogle()">
-                    <i class="fab fa-google"></i> Sign up with Google
-                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-youtube" style="flex: 1;" onclick="checkYouTubeVerification()">
+                        <i class="fas fa-sync-alt"></i> Check Verification
+                    </button>
+                    <button class="btn btn-danger" style="flex: 1;" onclick="closeYouTubeModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
             </div>
             
             <div style="text-align: center; margin-top: 20px;">
                 <small style="color: #666;">
-                    By signing in, you agree to our Terms of Service
+                    By signing in, you agree to YouTube's Terms of Service
                 </small>
             </div>
         </div>
     </div>
 
-    <script type="module">
-        // Import Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    <!-- Cookie Consent -->
+    <div class="cookie-consent" id="cookieConsent">
+        <p><i class="fas fa-cookie-bite" style="color: #ff4444; margin-right: 10px;"></i> This site uses cookies to remember your YouTube sign-in status. By continuing, you consent to our use of cookies.</p>
+        <button onclick="acceptCookies()">Accept</button>
+    </div>
 
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAupBkllyicDPD9O6CmX4mS4sF5z96mqxc",
-            authDomain: "vertexpaste.firebaseapp.com",
-            projectId: "vertexpaste",
-            storageBucket: "vertexpaste.firebasestorage.app",
-            messagingSenderId: "255275350380",
-            appId: "1:255275350380:web:7be4e8add2cb5b04045b49"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        
-        // Configure Google Provider
-        const googleProvider = new GoogleAuthProvider();
-        googleProvider.setCustomParameters({
-            client_id: "572074212370-k56l9us4reqog2m61b9ni53lcg60ktne.apps.googleusercontent.com"
-        });
-
+    <script>
         // ============ APP STATE ============
         let currentUser = null;
         let isDuplicating = false;
-        let activeVideos = 0;
-        let totalVideos = 0;
-        let currentFPS = 60;
-        let videoElements = [];
+        let activeTabs = 0;
+        let totalTabs = 0;
+        let openedTabs = [];
+        let tabMode = 'new-tab'; // 'new-tab' or 'same-tab'
+        let youtubeVerified = false;
+        let youtubeUserEmail = null;
 
         // DOM Elements
-        const authModal = document.getElementById('authModal');
+        const youtubeModal = document.getElementById('youtubeAuthModal');
         const mainContent = document.getElementById('mainContent');
         const navButtons = document.getElementById('navButtons');
+        const cookieConsent = document.getElementById('cookieConsent');
+        const openedTabsContainer = document.getElementById('openedTabsContainer');
+        const tabsGrid = document.getElementById('tabsGrid');
+        const openedTabsCount = document.getElementById('openedTabsCount');
+        const totalTabsToOpen = document.getElementById('totalTabsToOpen');
 
-        // ============ AUTH FUNCTIONS ============
-        window.showAuth = function() {
-            authModal.classList.add('active');
-        };
-
-        window.closeAuth = function() {
-            authModal.classList.remove('active');
-        };
-
-        window.switchAuthTab = function(tab) {
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.auth-form').forEach(f => f.style.display = 'none');
-            
-            if (tab === 'login') {
-                document.querySelectorAll('.auth-tab')[0].classList.add('active');
-                document.getElementById('loginForm').style.display = 'block';
-            } else {
-                document.querySelectorAll('.auth-tab')[1].classList.add('active');
-                document.getElementById('signupForm').style.display = 'block';
-            }
-        };
-
-        window.signupWithEmail = async function() {
-            const name = document.getElementById('signupName')?.value;
-            const email = document.getElementById('signupEmail')?.value;
-            const password = document.getElementById('signupPassword')?.value;
-
-            if (!email || !password || !name) {
-                showNotification('Please fill in all fields', 'error');
-                return;
-            }
-
-            if (password.length < 6) {
-                showNotification('Password must be at least 6 characters', 'error');
-                return;
-            }
-
-            try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                await updateProfile(userCredential.user, {
-                    displayName: name
-                });
-                
-                // Create user document in Firestore
-                await setDoc(doc(db, 'users', userCredential.user.uid), {
-                    displayName: name,
-                    email: email,
-                    createdAt: new Date().toISOString(),
-                    lastLogin: new Date().toISOString()
-                });
-                
-                showNotification('Account created successfully!', 'success');
-                closeAuth();
-            } catch (error) {
-                showNotification(getUserFriendlyError(error), 'error');
-            }
-        };
-
-        window.loginWithEmail = async function() {
-            const email = document.getElementById('loginEmail')?.value;
-            const password = document.getElementById('loginPassword')?.value;
-
-            if (!email || !password) {
-                showNotification('Please fill in all fields', 'error');
-                return;
-            }
-
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                
-                // Update last login
-                if (auth.currentUser) {
-                    await setDoc(doc(db, 'users', auth.currentUser.uid), {
-                        lastLogin: new Date().toISOString()
-                    }, { merge: true });
-                }
-                
-                showNotification('Login successful!', 'success');
-                closeAuth();
-            } catch (error) {
-                showNotification(getUserFriendlyError(error), 'error');
-            }
-        };
-
-        window.loginWithGoogle = async function() {
-            try {
-                const result = await signInWithPopup(auth, googleProvider);
-                
-                // Create/update user document in Firestore
-                await setDoc(doc(db, 'users', result.user.uid), {
-                    displayName: result.user.displayName,
-                    email: result.user.email,
-                    avatar: result.user.photoURL,
-                    lastLogin: new Date().toISOString()
-                }, { merge: true });
-                
-                showNotification('Login successful with Google!', 'success');
-                closeAuth();
-            } catch (error) {
-                console.error('Google Sign-In Error:', error);
-                
-                if (error.code === 'auth/unauthorized-domain') {
-                    showNotification('This domain is not authorized. Please add it to Firebase console.', 'error');
-                } else if (error.code === 'auth/popup-blocked') {
-                    showNotification('Pop-up blocked. Please allow pop-ups for this site.', 'error');
-                } else {
-                    showNotification(getUserFriendlyError(error), 'error');
-                }
-            }
-        };
-
-        window.logout = async function() {
-            try {
-                await signOut(auth);
-                window.location.hash = '';
-                showNotification('Logged out successfully', 'success');
-                showLiveDuper();
-            } catch (error) {
-                showNotification(getUserFriendlyError(error), 'error');
-            }
-        };
-
-        function getUserFriendlyError(error) {
-            const errorCode = error.code;
-            
-            switch(errorCode) {
-                case 'auth/email-already-in-use':
-                    return 'This email is already registered. Please login instead.';
-                case 'auth/invalid-email':
-                    return 'Please enter a valid email address.';
-                case 'auth/weak-password':
-                    return 'Password should be at least 6 characters.';
-                case 'auth/wrong-password':
-                    return 'Incorrect password. Please try again.';
-                case 'auth/user-not-found':
-                    return 'No account found with this email.';
-                case 'auth/popup-closed-by-user':
-                    return 'Sign-in cancelled. Please try again.';
-                default:
-                    return 'An error occurred. Please try again.';
+        // ============ COOKIE CONSENT ============
+        function checkCookieConsent() {
+            const consent = localStorage.getItem('cookieConsent');
+            if (!consent) {
+                cookieConsent.classList.add('show');
             }
         }
+
+        window.acceptCookies = function() {
+            localStorage.setItem('cookieConsent', 'accepted');
+            cookieConsent.classList.remove('show');
+        };
+
+        // ============ YOUTUBE VERIFICATION ============
+        function checkStoredYouTubeVerification() {
+            const verified = localStorage.getItem('youtubeVerified');
+            const email = localStorage.getItem('youtubeEmail');
+            if (verified === 'true' && email) {
+                youtubeVerified = true;
+                youtubeUserEmail = email;
+                return true;
+            }
+            return false;
+        }
+
+        window.showYouTubeAuth = function() {
+            youtubeModal.classList.add('active');
+        };
+
+        window.closeYouTubeModal = function() {
+            youtubeModal.classList.remove('active');
+        };
+
+        window.switchYouTubeTab = function(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#youtubeSigninForm, #youtubeVerifyForm').forEach(f => f.style.display = 'none');
+            
+            if (tab === 'signin') {
+                document.querySelectorAll('.auth-tab')[0].classList.add('active');
+                document.getElementById('youtubeSigninForm').style.display = 'block';
+            } else {
+                document.querySelectorAll('.auth-tab')[1].classList.add('active');
+                document.getElementById('youtubeVerifyForm').style.display = 'block';
+                updateVerificationStatus();
+            }
+        };
+
+        function updateVerificationStatus() {
+            const icon = document.getElementById('verifyIcon');
+            const title = document.getElementById('verifyTitle');
+            const text = document.getElementById('verifyText');
+            
+            if (youtubeVerified && youtubeUserEmail) {
+                icon.className = 'fas fa-check-circle verified';
+                icon.style.color = '#00ff88';
+                title.textContent = '✓ YouTube Verified';
+                title.style.color = '#00ff88';
+                text.textContent = `Verified as: ${youtubeUserEmail}`;
+            } else {
+                icon.className = 'fab fa-youtube';
+                icon.style.color = '#ff0000';
+                title.textContent = 'Not Verified';
+                title.style.color = '#ff6666';
+                text.textContent = 'You haven\'t signed in with YouTube yet. Please sign in first.';
+            }
+        }
+
+        window.signInToYouTube = function() {
+            const email = document.getElementById('youtubeEmail')?.value;
+            const password = document.getElementById('youtubePassword')?.value;
+            
+            if (!email || !password) {
+                showNotification('Please enter your YouTube/Google email and password', 'error');
+                return;
+            }
+            
+            // Simulate YouTube sign-in (in real app, this would use OAuth)
+            if (email.includes('@') && password.length >= 6) {
+                youtubeVerified = true;
+                youtubeUserEmail = email;
+                
+                // Store in localStorage
+                localStorage.setItem('youtubeVerified', 'true');
+                localStorage.setItem('youtubeEmail', email);
+                
+                showNotification('Successfully signed in to YouTube!', 'success');
+                closeYouTubeModal();
+                updateNavbar();
+                showLiveDuper();
+            } else {
+                showNotification('Invalid credentials. Please try again.', 'error');
+            }
+        };
+
+        window.signInWithGoogleForYouTube = function() {
+            // Simulate Google sign-in for YouTube
+            const mockEmail = 'user' + Math.floor(Math.random() * 1000) + '@gmail.com';
+            
+            youtubeVerified = true;
+            youtubeUserEmail = mockEmail;
+            
+            localStorage.setItem('youtubeVerified', 'true');
+            localStorage.setItem('youtubeEmail', mockEmail);
+            
+            showNotification('Successfully signed in with Google for YouTube!', 'success');
+            closeYouTubeModal();
+            updateNavbar();
+            showLiveDuper();
+        };
+
+        window.checkYouTubeVerification = function() {
+            if (youtubeVerified) {
+                showNotification('✓ YouTube verified! You can now use Live Duper.', 'success');
+            } else {
+                showNotification('✗ Not verified. Please sign in to YouTube first.', 'error');
+            }
+            updateVerificationStatus();
+        };
+
+        window.logoutYouTube = function() {
+            youtubeVerified = false;
+            youtubeUserEmail = null;
+            localStorage.removeItem('youtubeVerified');
+            localStorage.removeItem('youtubeEmail');
+            showNotification('Signed out from YouTube', 'info');
+            updateNavbar();
+            showLiveDuper();
+            
+            // Close all tabs on logout
+            closeAllTabs();
+        };
 
         // ============ UPDATE NAVBAR ============
         function updateNavbar() {
-            if (currentUser) {
-                const initial = (currentUser.displayName || 'U').charAt(0).toUpperCase();
-                const avatarUrl = currentUser.photoURL || currentUser.avatar;
-                
+            if (youtubeVerified) {
                 navButtons.innerHTML = `
-                    <div class="user-info" onclick="window.location.hash='#profile'">
-                        ${avatarUrl ? 
-                            `<img src="${avatarUrl}" class="user-avatar" style="object-fit: cover;">` : 
-                            `<div class="user-avatar">${initial}</div>`
-                        }
-                        <span>${currentUser.displayName || 'User'}</span>
+                    <div class="user-info" onclick="showYouTubeAuth()">
+                        <div class="user-avatar" style="background: #ff0000;">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+                        <span>${youtubeUserEmail ? youtubeUserEmail.split('@')[0] : 'YouTube User'}</span>
+                        <span class="youtube-badge verified"><i class="fas fa-check-circle"></i> Verified</span>
                     </div>
-                    <button class="btn btn-danger" onclick="logout()">
-                        <i class="fas fa-sign-out-alt"></i> Logout
+                    <button class="btn btn-danger" onclick="logoutYouTube()">
+                        <i class="fas fa-sign-out-alt"></i> Sign Out
                     </button>
                 `;
             } else {
                 navButtons.innerHTML = `
-                    <button class="btn btn-primary" onclick="showAuth()">
-                        <i class="fas fa-sign-in-alt"></i> Sign in with Google
+                    <button class="btn btn-youtube" onclick="showYouTubeAuth()">
+                        <i class="fab fa-youtube"></i> Sign in to YouTube
                     </button>
                 `;
             }
         }
 
-        // ============ AUTH STATE OBSERVER ============
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // Get additional user data from Firestore
-                try {
-                    const userDoc = await getDoc(doc(db, 'users', user.uid));
-                    if (userDoc.exists()) {
-                        currentUser = {
-                            uid: user.uid,
-                            email: user.email,
-                            displayName: userDoc.data().displayName || user.displayName,
-                            photoURL: userDoc.data().avatar || user.photoURL,
-                            ...userDoc.data()
-                        };
-                    } else {
-                        currentUser = {
-                            uid: user.uid,
-                            email: user.email,
-                            displayName: user.displayName,
-                            photoURL: user.photoURL
-                        };
-                    }
-                } catch (error) {
-                    console.error('Error getting user data:', error);
-                    currentUser = {
-                        uid: user.uid,
-                        email: user.email,
-                        displayName: user.displayName,
-                        photoURL: user.photoURL
-                    };
-                }
+        // ============ TAB MANAGEMENT ============
+        window.setTabMode = function(mode) {
+            tabMode = mode;
+            
+            // Update UI
+            document.querySelectorAll('.tab-mode-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            if (mode === 'new-tab') {
+                document.querySelector('.tab-mode-option.new-tab').classList.add('selected');
             } else {
-                currentUser = null;
+                document.querySelector('.tab-mode-option.single-tab').classList.add('selected');
             }
             
-            updateNavbar();
-            handleRouting();
-        });
+            // Show/hide tabs container based on mode
+            if (mode === 'new-tab') {
+                updateTabsDisplay();
+            } else {
+                openedTabsContainer.style.display = 'none';
+            }
+        };
+
+        function updateTabsDisplay() {
+            if (tabMode === 'new-tab' && openedTabs.length > 0) {
+                openedTabsContainer.style.display = 'block';
+                renderTabsGrid();
+            } else {
+                openedTabsContainer.style.display = 'none';
+            }
+        }
+
+        function renderTabsGrid() {
+            if (!tabsGrid) return;
+            
+            tabsGrid.innerHTML = '';
+            openedTabs.forEach((tab, index) => {
+                const tabCard = document.createElement('div');
+                tabCard.className = 'tab-card';
+                tabCard.onclick = () => focusTab(tab.windowRef);
+                
+                tabCard.innerHTML = `
+                    <div class="tab-card-header">
+                        <span class="tab-card-title">${tab.title || 'YouTube Live'}</span>
+                        <span class="tab-card-number">#${index + 1}</span>
+                    </div>
+                    <div class="tab-card-url">${tab.url}</div>
+                    <div class="tab-card-actions">
+                        <button class="tab-card-btn" onclick="event.stopPropagation(); focusTab(tab.windowRef)">Focus</button>
+                        <button class="tab-card-btn" onclick="event.stopPropagation(); closeTab(${index})">Close</button>
+                    </div>
+                `;
+                
+                tabsGrid.appendChild(tabCard);
+            });
+            
+            if (openedTabsCount) openedTabsCount.textContent = openedTabs.length;
+        }
+
+        window.focusTab = function(windowRef) {
+            if (windowRef && !windowRef.closed) {
+                windowRef.focus();
+            } else {
+                // Remove dead tabs
+                openedTabs = openedTabs.filter(tab => tab.windowRef && !tab.windowRef.closed);
+                renderTabsGrid();
+                updateTabsDisplay();
+            }
+        };
+
+        window.closeTab = function(index) {
+            const tab = openedTabs[index];
+            if (tab && tab.windowRef && !tab.windowRef.closed) {
+                tab.windowRef.close();
+            }
+            openedTabs.splice(index, 1);
+            activeTabs = openedTabs.length;
+            updateStats();
+            renderTabsGrid();
+            updateTabsDisplay();
+        };
+
+        window.closeAllTabs = function() {
+            openedTabs.forEach(tab => {
+                if (tab.windowRef && !tab.windowRef.closed) {
+                    tab.windowRef.close();
+                }
+            });
+            openedTabs = [];
+            activeTabs = 0;
+            totalTabs = 0;
+            updateStats();
+            renderTabsGrid();
+            updateTabsDisplay();
+        };
+
+        function updateStats() {
+            const activeElement = document.getElementById('activeCount');
+            const totalElement = document.getElementById('totalCount');
+            if (activeElement) activeElement.textContent = activeTabs;
+            if (totalElement) totalElement.textContent = totalTabs;
+            if (openedTabsCount) openedTabsCount.textContent = openedTabs.length;
+        }
 
         // ============ ROUTING ============
         function handleRouting() {
             const hash = window.location.hash;
-            
-            if (hash === '#profile' && currentUser) {
-                showProfile();
-            } else {
-                showLiveDuper();
-            }
+            showLiveDuper();
         }
 
         window.addEventListener('hashchange', handleRouting);
 
         // ============ SHOW LIVE DUPER ============
         function showLiveDuper() {
+            if (!youtubeVerified) {
+                // Show YouTube sign-in required message
+                mainContent.innerHTML = `
+                    <div class="control-panel" style="text-align: center;">
+                        <div class="youtube-icon">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+                        <h1><span>YouTube</span> Sign-in Required</h1>
+                        <div class="live-badge youtube-required-badge">
+                            ⚠️ YOU MUST SIGN IN TO YOUTUBE FIRST ⚠️
+                        </div>
+                        
+                        <p style="color: #ccc; font-size: 18px; margin: 30px 0;">
+                            To use the Live Duper and prevent abuse, you need to verify you have a YouTube account.
+                        </p>
+                        
+                        <button class="btn btn-youtube" style="font-size: 20px; padding: 20px 40px;" onclick="showYouTubeAuth()">
+                            <i class="fab fa-youtube"></i> Sign in to YouTube Now
+                        </button>
+                        
+                        <div style="margin-top: 40px; color: #666;">
+                            <p><i class="fas fa-check-circle" style="color: #00ff88;"></i> Your privacy is protected</p>
+                            <p><i class="fas fa-check-circle" style="color: #00ff88;"></i> No data is stored permanently</p>
+                            <p><i class="fas fa-check-circle" style="color: #00ff88;"></i> Required to prevent bot abuse</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Show the Live Duper for verified users
             mainContent.innerHTML = `
                 <div class="control-panel">
-                    <h1>🔴 <span>LIVE DUPER</span> 100x</h1>
-                    <div class="live-badge">⚠️ WARNING: 100 DUPLICATIONS WILL CAUSE LAG ⚠️</div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                        <h1>🔴 <span>LIVE DUPER</span> 100x</h1>
+                        <div class="youtube-badge verified">
+                            <i class="fab fa-youtube"></i> Verified: ${youtubeUserEmail ? youtubeUserEmail.split('@')[0] : 'YouTube User'}
+                        </div>
+                    </div>
+                    
+                    <div class="live-badge new-tab-badge">
+                        <i class="fas fa-window-restore"></i> OPENS IN NEW TABS - ${tabMode === 'new-tab' ? 'ACTIVE' : 'SWITCH TO NEW TAB MODE'}
+                    </div>
+                    
+                    <div class="tab-mode-selector">
+                        <div class="tab-mode-option single-tab ${tabMode === 'same-tab' ? 'selected' : ''}" onclick="setTabMode('same-tab')">
+                            <i class="fas fa-window-maximize"></i>
+                            <span>Same Tab (Embedded)</span>
+                            <small style="display: block; color: #888; margin-top: 5px;">Videos in this page</small>
+                        </div>
+                        <div class="tab-mode-option new-tab ${tabMode === 'new-tab' ? 'selected' : ''}" onclick="setTabMode('new-tab')">
+                            <i class="fas fa-window-restore"></i>
+                            <span>New Tabs (Opens separately)</span>
+                            <small style="display: block; color: #888; margin-top: 5px;">Each in its own tab</small>
+                        </div>
+                    </div>
                     
                     <div class="input-group">
                         <label>📺 YouTube Live Link</label>
@@ -1108,13 +1450,6 @@
                         </div>
                     </div>
                     
-                    <div class="lag-toggle">
-                        <label>
-                            <input type="checkbox" id="lagProtection" checked> 🛡️ Enable Lag Protection (Auto-stop if PC struggles)
-                        </label>
-                        <span class="lag-badge">LAG DETECTOR ACTIVE</span>
-                    </div>
-                    
                     <div class="button-group">
                         <button class="start-btn" id="startBtn" onclick="startDuplication()">🚀 START DUPLICATION</button>
                         <button class="stop-btn" id="stopBtn" onclick="stopDuplication()" disabled>⏹️ STOP</button>
@@ -1123,16 +1458,31 @@
                     <div class="stats-panel">
                         <div class="stats">
                             <div class="stat-item">
-                                <span class="stat-value" id="activeCount">0</span>
-                                <span class="stat-label">ACTIVE</span>
+                                <span class="stat-value" id="activeCount">${activeTabs}</span>
+                                <span class="stat-label">ACTIVE TABS</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-value" id="totalCount">0</span>
-                                <span class="stat-label">TOTAL</span>
+                                <span class="stat-value" id="totalCount">${totalTabs}</span>
+                                <span class="stat-label">TOTAL OPENED</span>
                             </div>
                             <div class="stat-item">
                                 <span class="stat-value" id="fpsCounter">60</span>
                                 <span class="stat-label">FPS</span>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-stats">
+                            <div class="tab-stat">
+                                <span class="tab-stat-value" id="newTabMode">${tabMode === 'new-tab' ? '✓' : '✗'}</span>
+                                <span class="tab-stat-label">NEW TAB MODE</span>
+                            </div>
+                            <div class="tab-stat">
+                                <span class="tab-stat-value" id="popupsBlocked">0</span>
+                                <span class="tab-stat-label">POPUPS BLOCKED</span>
+                            </div>
+                            <div class="tab-stat">
+                                <span class="tab-stat-value" id="tabsOpened">${openedTabs.length}</span>
+                                <span class="tab-stat-label">TABS OPEN</span>
                             </div>
                         </div>
                     </div>
@@ -1149,11 +1499,11 @@
                     </div>
                     
                     <div class="help-text">
-                        ⚡ All videos will auto-play after cloning • Press STOP to clear all • Lag protection monitors FPS
+                        ⚡ All videos open in new tabs • Enable pop-ups for this site • Each tab auto-plays
                     </div>
                 </div>
                 
-                <div id="gridContainer"></div>
+                <div id="gridContainer" style="display: none;"></div>
             `;
 
             // Re-attach event listeners
@@ -1161,59 +1511,15 @@
                 document.getElementById('countValue').textContent = this.value;
             });
 
-            // Start FPS monitoring
-            startFPSMonitoring();
-        }
-
-        // ============ SHOW PROFILE ============
-        function showProfile() {
-            if (!currentUser) {
-                window.location.hash = '';
-                return;
-            }
-
-            mainContent.innerHTML = `
-                <div class="control-panel" style="max-width: 600px;">
-                    <h1>👤 <span>Your Profile</span></h1>
-                    
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        ${currentUser.photoURL ? 
-                            `<img src="${currentUser.photoURL}" style="width: 100px; height: 100px; border-radius: 50%; border: 4px solid #ff4444;">` : 
-                            `<div style="width: 100px; height: 100px; border-radius: 50%; background: #ff4444; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 40px; font-weight: bold;">${(currentUser.displayName || 'U').charAt(0).toUpperCase()}</div>`
-                        }
-                        <h2 style="margin-top: 15px;">${escapeHtml(currentUser.displayName || 'User')}</h2>
-                        <p style="color: #888;">${escapeHtml(currentUser.email || '')}</p>
-                    </div>
-                    
-                    <div class="stats-panel">
-                        <div class="stats">
-                            <div class="stat-item">
-                                <span class="stat-value">${currentUser.createdAt ? new Date(currentUser.createdAt).toLocaleDateString() : 'N/A'}</span>
-                                <span class="stat-label">MEMBER SINCE</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-value">${currentUser.lastLogin ? new Date(currentUser.lastLogin).toLocaleDateString() : 'Today'}</span>
-                                <span class="stat-label">LAST LOGIN</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="display: flex; gap: 15px; margin-top: 20px;">
-                        <button class="start-btn" onclick="window.location.hash=''">
-                            <i class="fas fa-video"></i> Back to Live Duper
-                        </button>
-                        <button class="stop-btn" onclick="logout()">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </button>
-                    </div>
-                </div>
-            `;
+            // Update tabs display
+            updateTabsDisplay();
         }
 
         // ============ LIVE DUPER FUNCTIONS ============
         let fpsInterval = null;
         let lastFrameTime = performance.now();
         let frames = 0;
+        let currentFPS = 60;
 
         function startFPSMonitoring() {
             if (fpsInterval) {
@@ -1234,11 +1540,13 @@
                     frames = 0;
                     lastFrameTime = now;
                     
-                    // Check for lag
-                    const lagProtection = document.getElementById('lagProtection');
-                    if (lagProtection && lagProtection.checked && isDuplicating && currentFPS < 30) {
-                        showLagWarning();
-                        stopDuplication();
+                    // Check for lag (but don't auto-stop for new tabs since they're separate)
+                    if (tabMode === 'same-tab') {
+                        const lagProtection = document.getElementById('lagProtection');
+                        if (lagProtection && lagProtection.checked && isDuplicating && currentFPS < 30) {
+                            showLagWarning();
+                            stopDuplication();
+                        }
                     }
                 }
                 
@@ -1279,36 +1587,10 @@
             if (input) input.value = url;
         };
 
-        function createVideoEmbed(videoId, index) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'video-wrapper loading';
-            
-            const indexSpan = document.createElement('span');
-            indexSpan.className = 'video-index';
-            indexSpan.textContent = `#${index + 1}`;
-            wrapper.appendChild(indexSpan);
-            
-            const iframe = document.createElement('iframe');
-            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&controls=0&disablekb=1&fs=0&iv_load_policy=3&modestbranding=1&playsinline=1&rel=0&showinfo=0&enablejsapi=1&loop=1&playlist=${videoId}`;
-            iframe.allow = "autoplay; fullscreen";
-            iframe.setAttribute('allowfullscreen', 'false');
-            
-            wrapper.appendChild(iframe);
-            
-            iframe.onload = () => {
-                wrapper.classList.remove('loading');
-                activeVideos++;
-                const activeElement = document.getElementById('activeCount');
-                if (activeElement) activeElement.textContent = activeVideos;
-            };
-            
-            return wrapper;
-        }
-
         window.startDuplication = function() {
-            if (!currentUser) {
-                showNotification('Please sign in to use Live Duper', 'error');
-                showAuth();
+            if (!youtubeVerified) {
+                showNotification('You MUST sign in to YouTube first!', 'error');
+                showYouTubeAuth();
                 return;
             }
 
@@ -1326,26 +1608,38 @@
             
             const count = parseInt(document.getElementById('duplicateCount')?.value || '10');
             
-            // Clear previous videos
-            const gridContainer = document.getElementById('gridContainer');
-            if (gridContainer) {
-                gridContainer.innerHTML = '';
+            if (tabMode === 'new-tab') {
+                // NEW TAB MODE - Open each in a new tab
+                openTabsInNewWindows(videoId, count, link);
+            } else {
+                // SAME TAB MODE - Show embedded videos (original behavior)
+                showNotification('Please select "New Tabs" mode to open in separate tabs', 'info');
+                setTabMode('new-tab');
+                openTabsInNewWindows(videoId, count, link);
             }
+        };
+
+        function openTabsInNewWindows(videoId, count, originalUrl) {
+            // Check if popups are blocked
+            const testWindow = window.open('', '_blank');
+            if (!testWindow || testWindow.closed || typeof testWindow.closed === 'undefined') {
+                showNotification('Pop-ups are blocked! Please allow pop-ups for this site.', 'error');
+                document.getElementById('popupsBlocked').textContent = 'YES';
+                return;
+            }
+            testWindow.close();
             
-            activeVideos = 0;
-            totalVideos = 0;
-            videoElements = [];
+            // Reset tracking
+            activeTabs = 0;
+            totalTabs = count;
+            openedTabs = [];
             
-            // Create loading overlay
-            const loadingOverlay = document.createElement('div');
-            loadingOverlay.className = 'loading-overlay';
-            loadingOverlay.id = 'loadingOverlay';
-            loadingOverlay.innerHTML = `
-                <div class="spinner"></div>
-                <div class="loading-text">Cloning Live Stream ${count} times...</div>
-                <div class="loading-subtext" id="loadingSubtext">0/${count} duplicated</div>
-            `;
-            document.body.appendChild(loadingOverlay);
+            // Update total count in UI
+            if (totalTabsToOpen) totalTabsToOpen.textContent = count;
+            updateStats();
+            
+            // Show the tabs container
+            openedTabsContainer.style.display = 'block';
             
             // Disable start button, enable stop button
             const startBtn = document.getElementById('startBtn');
@@ -1354,84 +1648,92 @@
             if (stopBtn) stopBtn.disabled = false;
             isDuplicating = true;
             
-            // Create videos with delay to prevent freeze
-            let created = 0;
+            // Show loading notification
+            showNotification(`Opening ${count} tabs... Make sure pop-ups are enabled!`, 'info');
             
-            function createNextVideo() {
-                if (!isDuplicating || created >= count) {
-                    if (created >= count) {
-                        const overlay = document.getElementById('loadingOverlay');
-                        if (overlay) overlay.remove();
+            // Create tabs with delay to prevent browser blocking
+            let opened = 0;
+            
+            function openNextTab() {
+                if (!isDuplicating || opened >= count) {
+                    if (opened >= count) {
+                        showNotification(`Successfully opened ${count} tabs!`, 'success');
                     }
                     return;
                 }
                 
-                const wrapper = createVideoEmbed(videoId, created);
-                if (gridContainer) {
-                    gridContainer.appendChild(wrapper);
-                }
-                videoElements.push(wrapper);
-                
-                created++;
-                totalVideos = created;
-                const totalElement = document.getElementById('totalCount');
-                if (totalElement) totalElement.textContent = totalVideos;
-                
-                const loadingSubtext = document.getElementById('loadingSubtext');
-                if (loadingSubtext) loadingSubtext.textContent = `${created}/${count} duplicated`;
-                
-                if (created < count) {
-                    // Check for lag before creating next
-                    const lagProtection = document.getElementById('lagProtection');
-                    if (lagProtection && lagProtection.checked && currentFPS < 30) {
-                        showLagWarning();
-                        stopDuplication();
-                        return;
+                try {
+                    // Create the YouTube watch URL
+                    const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
+                    
+                    // Open in new tab with autoplay parameters
+                    const newTab = window.open(
+                        `${watchUrl}&autoplay=1`, 
+                        `youtube_live_${opened + 1}`, 
+                        'noopener,noreferrer'
+                    );
+                    
+                    if (newTab) {
+                        // Store tab info
+                        openedTabs.push({
+                            id: opened + 1,
+                            url: watchUrl,
+                            windowRef: newTab,
+                            title: `YouTube Live #${opened + 1}`,
+                            openedAt: new Date().toISOString()
+                        });
+                        
+                        activeTabs = openedTabs.length;
+                        opened++;
+                        
+                        // Update UI
+                        updateStats();
+                        renderTabsGrid();
+                        
+                        // Try to focus the tab (may be blocked by browser)
+                        try {
+                            newTab.focus();
+                        } catch (e) {
+                            // Ignore focus errors
+                        }
+                    } else {
+                        showNotification(`Tab #${opened + 1} was blocked. Check pop-up blocker.`, 'error');
                     }
                     
-                    // Dynamic delay based on count
-                    const delay = count > 50 ? 200 : 100;
-                    setTimeout(createNextVideo, delay);
+                } catch (error) {
+                    console.error('Error opening tab:', error);
+                    showNotification(`Error opening tab #${opened + 1}`, 'error');
+                }
+                
+                if (opened < count) {
+                    // Delay between openings to prevent browser blocking
+                    setTimeout(openNextTab, 300);
                 } else {
-                    // Done creating
+                    // All tabs opened
                     setTimeout(() => {
-                        const overlay = document.getElementById('loadingOverlay');
-                        if (overlay) overlay.remove();
+                        showNotification(`All ${count} tabs opened! Check your browser.`, 'success');
                     }, 500);
                 }
             }
             
-            // Show loading overlay and start creating
-            setTimeout(createNextVideo, 100);
-        };
+            // Start opening tabs
+            setTimeout(openNextTab, 100);
+        }
 
         window.stopDuplication = function() {
             isDuplicating = false;
-            
-            // Clear all videos
-            const gridContainer = document.getElementById('gridContainer');
-            if (gridContainer) {
-                gridContainer.innerHTML = '';
-            }
-            videoElements = [];
-            
-            // Reset counters
-            activeVideos = 0;
-            totalVideos = 0;
-            const activeElement = document.getElementById('activeCount');
-            const totalElement = document.getElementById('totalCount');
-            if (activeElement) activeElement.textContent = '0';
-            if (totalElement) totalElement.textContent = '0';
-            
-            // Remove loading overlay
-            const overlay = document.getElementById('loadingOverlay');
-            if (overlay) overlay.remove();
             
             // Reset buttons
             const startBtn = document.getElementById('startBtn');
             const stopBtn = document.getElementById('stopBtn');
             if (startBtn) startBtn.disabled = false;
             if (stopBtn) stopBtn.disabled = true;
+            
+            // Update total count
+            totalTabs = openedTabs.length;
+            updateStats();
+            
+            showNotification('Stopped opening new tabs', 'info');
         };
 
         // ============ UTILITY FUNCTIONS ============
@@ -1449,38 +1751,53 @@
             }, 3000);
         }
 
-        function escapeHtml(unsafe) {
-            if (!unsafe) return '';
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
         // Close modal on outside click
         window.onclick = function(event) {
-            if (event.target === authModal) {
-                closeAuth();
+            if (event.target === youtubeModal) {
+                closeYouTubeModal();
             }
         };
 
+        // Check for closed tabs periodically
+        setInterval(() => {
+            const beforeCount = openedTabs.length;
+            openedTabs = openedTabs.filter(tab => tab.windowRef && !tab.windowRef.closed);
+            
+            if (beforeCount !== openedTabs.length) {
+                activeTabs = openedTabs.length;
+                updateStats();
+                renderTabsGrid();
+                updateTabsDisplay();
+            }
+        }, 1000);
+
         // ============ INITIALIZE ============
-        // Show live duper by default
+        // Check for stored YouTube verification
+        checkStoredYouTubeVerification();
+        
+        // Check cookie consent
+        checkCookieConsent();
+        
+        // Show live duper
         showLiveDuper();
+        updateNavbar();
 
         // Make functions available globally
-        window.showAuth = showAuth;
-        window.closeAuth = closeAuth;
-        window.switchAuthTab = switchAuthTab;
-        window.signupWithEmail = signupWithEmail;
-        window.loginWithEmail = loginWithEmail;
-        window.loginWithGoogle = loginWithGoogle;
-        window.logout = logout;
+        window.showYouTubeAuth = showYouTubeAuth;
+        window.closeYouTubeModal = closeYouTubeModal;
+        window.switchYouTubeTab = switchYouTubeTab;
+        window.signInToYouTube = signInToYouTube;
+        window.signInWithGoogleForYouTube = signInWithGoogleForYouTube;
+        window.checkYouTubeVerification = checkYouTubeVerification;
+        window.logoutYouTube = logoutYouTube;
+        window.acceptCookies = acceptCookies;
         window.startDuplication = startDuplication;
         window.stopDuplication = stopDuplication;
+        window.setTabMode = setTabMode;
         window.useExample = useExample;
+        window.focusTab = focusTab;
+        window.closeTab = closeTab;
+        window.closeAllTabs = closeAllTabs;
     </script>
 </body>
 </html>
